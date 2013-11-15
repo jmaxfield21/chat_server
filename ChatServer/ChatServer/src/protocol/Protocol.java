@@ -28,8 +28,4 @@ public class Protocol {
 	private static final String SERVER_ERROR = "]Error";
 	private static final String SERVER_BAD_SYNTAX = "]BadSyntax";
 	
-	
-			
-	
-	
 }
