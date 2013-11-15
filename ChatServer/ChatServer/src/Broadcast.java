@@ -21,6 +21,14 @@ public class Broadcast {
 	public Broadcast(Vector initUsers, BlockingQueue initMessages) {
 		this.users = initUsers;
 		this.messages = initMessages;
+		getMessages()
+	}
+
+	/** 
+	Reads in messages from the queue indefinitely.
+	*/
+	private void getMessages() {
+
 	}
 
 }
