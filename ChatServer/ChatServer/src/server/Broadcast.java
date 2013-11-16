@@ -1,4 +1,9 @@
+package server;
+
 /**
+Protocol.java
+@author Jace Maxfield && Sean Groathouse
+
 This is the broadcast thread which pulls from the message queue in the
 server.  The server will initiate a single instance of this class
 upon its initialization, and will pass a copy of the users:sockets
