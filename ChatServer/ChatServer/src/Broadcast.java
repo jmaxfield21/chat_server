@@ -13,22 +13,22 @@ message to their respective sockets.
 
 import java.util.concurrent.*;
 import java.util.Vector;
+import java.net.*;
 
-public class Broadcast {
+public class Broadcast implements Runnable {
 	private Vector users;
 	private BlockingQueue messages;
 
 	public Broadcast(Vector initUsers, BlockingQueue initMessages) {
 		this.users = initUsers;
 		this.messages = initMessages;
-		getMessages()
 	}
 
 	/** 
 	Reads in messages from the queue indefinitely.
 	*/
-	private void getMessages() {
-
+	public void run() {
+		
 	}
 
 }
