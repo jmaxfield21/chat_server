@@ -6,14 +6,14 @@ Broadcast.java
 
 This is the broadcast thread which pulls from the message queue in the
 server.  The server will initiate a single instance of this class
-upon its initialization, and will pass a copy of the users:sockets
+upon its initialization, and will pass a copy of the users:OutputStreams
 vector as well as the queue of messages.
 
 Once it pulls a message from the queue, it parses the contents
 to determine if the message is public or private and get the message
-body.  Then using the vector of users:sockets on the server, it 
+body.  Then using the vector of users:OutputStreams on the server, it 
 creates the appropriate responses to the recipients and sends the 
-message to their respective sockets.
+message to their respective outputStreams.
 */
 
 import java.util.concurrent.*;
@@ -21,13 +21,14 @@ import java.util.Vector;
 import java.net.*;
 
 public class Broadcast implements Runnable {
-	private Vector users;
-	private BlockingQueue messages;
+	private Vector<Tuple<String, OutputStream>> users;
+	private BlockingQueue<Tuple<String, String>> messages;
 
-	private BufferedOutputStream toClient; 
-	private Socket[] sockets; // TODO: This should be tuple, but that's currently private
+	private Tuple<String, OutputStream>[] userArray; 
 
-	public Broadcast(Vector initUsers, BlockingQueue initMessages) {
+
+	public Broadcast(Vector<Tuple<String, OutputStream>> initUsers, BlockingQueue<Tuple<String, String>>
+	 initMessages) {
 		this.users = initUsers;
 		this.messages = initMessages;
 	}
@@ -38,13 +39,17 @@ public class Broadcast implements Runnable {
 	indefinitely until a message is able to be removed from the queue.
 	*/
 	public void run() {
-		String msg = messages.take(); // Get a message when it becomes available
+		Tuple<String, String> taken = messages.take();
+		String sender = taken.X; // The sender's username
+		String msg = taken.Y; // Get a message when it becomes available
+
 		int newLine = msg.indexOf("\r\n"); // get the index of the first occurrence of \r\n
 		String command = msg.substring(0, newLine);
 		String msgBody = msg.substring(newLine); // The \r\n and the message contents and the end-char \u0004
 		int space = command.indexOf(" "); // Find the index of the space if there is one - for "/private uname\r\n"
 		String verb = ""; // the command itself
 		String uname = ""; // the user name (if /private)
+
 		if (space > 0) {
 			verb = command.substring(0, space);
 			uname = command.substring(space);
@@ -60,35 +65,39 @@ public class Broadcast implements Runnable {
 			// send a public message
 			String response = "";
 			response += "]public ";
-			// TODO: we need to know who is sending the message...
+			response += sender; // the sender's username
 			response += msgBody; // this includes the \r\n, body, and \u0004
 			
-			// Specifying sockets as a parameter means the return type will be Socket[] 
-			sockets = users.toArray(sockets); 
+			// Specifying userArray as a parameter means the return type will be Tuple<String, OutputStream>[] 
+			userArray = users.toArray(userArray); 
 
-			try {
-				for (int i = 0; i < sockets.length(); i++) {
-					toClient = new BufferedOutputStream(new DataOutputStream(client.getOutputStream()));
-					// TODO: should we be storing (user, outputStream) instead of Sockets?!
-					toClient.write(response);
-					toClient.flush();
-				}
-			}
-			catch (IOException ioe) {
-				// Hopefully this won't need to be here so we won't have to decide
-				// what needs to be done...
-			}
-			finally {
-				// see above
+			for (int i = 0; i < userArray.length(); i++) {
+				// userArray[i].Y yields an OutputStream that can talk to that client
+				userArray[i].Y.write(response);
+				userArray[i].Y.flush();
 			}
 		}
 		else {
 			// send a private message
 			String response = "";
 			response += "]private ";
-			// TODO: add the user name who the message is from
+			response += sender; // the sender's username
 			response += msgBody; // this includes the \r\n, body, and \u0004
+
+			// Specifying userArray as a parameter means the return type will be Tuple<String, OutputStream>[]
+			userArray = users.toArray(userArray);
+
+			for (int i = 0; i < userArray.length(); i++) {
+				// userArray[i].X is the user name string and userArray[i].Y is the outputStream
+				if (userArray[i].X.equals(uname)) {
+					userArray[i].Y.write(response);
+					userArray[i].Y.flush();
+					break; // We send to at most one user so we're done
+				}
+			}
 		}
+
+		run(); // Repeat indefinitely
 	}
 
 }
