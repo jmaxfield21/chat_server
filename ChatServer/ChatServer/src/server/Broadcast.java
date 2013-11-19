@@ -43,6 +43,9 @@ public class Broadcast implements Runnable {
 	indefinitely until a message is able to be removed from the queue.
 	 */
 	public void run() {
+		// TODO: should probably move the try-catch to the smaller for-loops of IO
+		// So that when a public message is sent to all users and one user has a problem,
+		// the other users can still receive the message.
 		try {
 			Tuple<String, String> taken = messages.take();
 			String sender = taken.x; // The sender's username
