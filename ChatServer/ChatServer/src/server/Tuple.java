@@ -4,7 +4,7 @@ package server;
 Tuple.java
 @author Jace Maxfield && Sean Groathouse
 
-A simple data structure for immutable storage of two linked objectsj
+A simple data structure for immutable storage of two linked objects
 */
 
 public class Tuple<X, Y> {
