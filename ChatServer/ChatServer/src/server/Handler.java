@@ -9,9 +9,13 @@ This class handles each client connection.
 
 import java.io.*;
 import java.net.*;
-import java.util.Date;
+import java.util.Vector;
+import java.util.concurrent.BlockingQueue;
+
+import protocol.Protocol;
 
 public class Handler implements Runnable {
+	private Protocol protocol;
 	private Socket client;
 	private Vector<Tuple<String, OutputStream>> users; // <username: their output stream>
 	private BlockingQueue<Tuple<String, String>> messages; // <sender user name:original message from client>

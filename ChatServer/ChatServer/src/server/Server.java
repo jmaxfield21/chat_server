@@ -6,7 +6,7 @@ Server.java
 
 This file runs the Chat Server itself, contains the data structures storing
 the user information (with a way to talk to each user), and the queue for 
-storing messages.  Upon initizliation, the server creates the data structures
+storing messages.  Upon initialization, the server creates the data structures
 and establishes one copy of the Broadcast thread to handle the sending of 
 messages.
  */
@@ -16,7 +16,10 @@ import java.io.*;
 import java.util.concurrent.*;
 import java.util.Vector;
 
+import protocol.Protocol;
+
 public class Server {
+	private Protocol protocol;
 	public static final int DEFAULT_PORT = 4020; 
 	private static final Executor exec = Executors.newCachedThreadPool();
 
@@ -26,6 +29,7 @@ public class Server {
 	public static void main(String[] args) {
 
 		users = new Vector<Tuple<String, OutputStream>>();
+		//TODO ArrayBlockingQueue? or other implementation?
 		messages = new ArrayBlockingQueue<Tuple<String, String>>();
 
 		// Create the broadcast thread
@@ -39,7 +43,7 @@ public class Server {
 			
 			// Listen for client connections and service them in a separate thread
 			while (true) {
-				Runnable task = new Handler(sock.accept());
+				Runnable task = new Handler(sock.accept(), users, messages);
 				exec.execute(task);
 			}
 		}
