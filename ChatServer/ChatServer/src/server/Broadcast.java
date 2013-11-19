@@ -43,13 +43,18 @@ public class Broadcast implements Runnable {
 	indefinitely until a message is able to be removed from the queue.
 	 */
 	public void run() {
-		// TODO: should probably move the try-catch to the smaller for-loops of IO
-		// So that when a public message is sent to all users and one user has a problem,
-		// the other users can still receive the message.
-		try {
-			Tuple<String, String> taken = messages.take();
-			String sender = taken.x; // The sender's username
-			String msg = taken.y; // Get a message when it becomes available
+		while (true) { // Repeat indefinitely
+			String sender = "";
+			String msg = "";
+			
+			try {
+				Tuple<String, String> taken = messages.take();
+				sender = taken.x; // The sender's username
+				msg = taken.y; // Get a message when it becomes available
+			}
+			catch (InterruptedException ie) {
+				continue; // We didn't get any input, so just start over
+			}
 
 			int newLine = msg.indexOf("\r\n"); // get the index of the first occurrence of \r\n
 			String command = msg.substring(0, newLine);
@@ -80,9 +85,14 @@ public class Broadcast implements Runnable {
 				userArray = users.toArray(userArray); 
 
 				for (int i = 0; i < userArray.length; i++) {
-					// userArray[i].Y yields an OutputStream that can talk to that client
-					userArray[i].y.write(response.getBytes());
-					userArray[i].y.flush();
+					try {
+						// userArray[i].y yields an OutputStream that can talk to that client
+						userArray[i].y.write(response.getBytes());
+						userArray[i].y.flush();
+					} 
+					catch (IOException ioe) { 
+						// We can't send a message to this user, but the others should still get it
+					}
 				}
 			}
 			else {
@@ -96,17 +106,20 @@ public class Broadcast implements Runnable {
 				userArray = users.toArray(userArray);
 
 				for (int i = 0; i < userArray.length; i++) {
-					// userArray[i].X is the user name string and userArray[i].Y is the outputStream
+					// userArray[i].x is the user name string and userArray[i].y is the outputStream
+					// note the username Is case sensitive
 					if (userArray[i].x.equals(uname)) {
-						userArray[i].y.write(response.getBytes());
-						userArray[i].y.flush();
+						try { 
+							userArray[i].y.write(response.getBytes());
+							userArray[i].y.flush();
+						}
+						catch (IOException ioe) { 
+							// We can't send a message to this user, but the others should still get it
+						}
 						break; // We send to at most one user so we're done
 					}
 				}
 			}
-		} catch (IOException | InterruptedException ioe) { /*add stuff here*/	}
-
-		run(); // Repeat indefinitely
-	}
-
-}
+		} // end while
+	} // end run
+} // end Broadcast

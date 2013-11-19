@@ -25,6 +25,21 @@ public class Server {
 
 	private static Vector<Tuple<String, OutputStream>> users; // Tuple<user's name:their output stream>
 	private static BlockingQueue<Tuple<String, String>> messages; // Tuple<sender's user name:message>
+
+	public Vector<Tuple<String, OutputStream>> getUsers() {
+		return users;
+	}
+
+	public void addUsers(String username, OutputStream toClient) {
+		users.add(new Tuple<String, OutputStream>(username, toClient));
+	}
+
+	public void removeUser(String username, OutputStream toClient) {
+		// Note two tuples are defined to be equal (in the equals method there)
+		// if they both are the same class and if their x values are equal
+		// in this case the String usernames.
+		users.remove(new Tuple<String, OutputStream>(username, toClient));
+	}
 	
 	public static void main(String[] args) {
 
