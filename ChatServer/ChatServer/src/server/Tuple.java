@@ -23,11 +23,11 @@ public class Tuple<X, Y> {
 	public boolean equals(Object other) {
 		if (other == null) 
 			return false;
-    	if (other == this) 
+		if (other == this) 
     		return true;
-    	if (!(other.getClass() == this.getClass()))
-    		return false;
-    	Tuple<X, Y> otherTuple = (Tuple<X, Y>)other;
-    	return (this.x.equals(otherTuple.x));
+		if (!(other.getClass() == this.getClass()))
+			return false;
+		Tuple<X, Y> otherTuple = (Tuple<X, Y>)other;
+		return (this.x.equals(otherTuple.x));
 	}
 }

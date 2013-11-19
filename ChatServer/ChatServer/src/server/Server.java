@@ -30,7 +30,7 @@ public class Server {
 		return users;
 	}
 
-	public void addUsers(String username, OutputStream toClient) {
+	public void addUser(String username, OutputStream toClient) {
 		users.add(new Tuple<String, OutputStream>(username, toClient));
 	}
 
