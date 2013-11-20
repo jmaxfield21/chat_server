@@ -41,10 +41,21 @@ public class Handler implements Runnable {
 			fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			toClient = new BufferedOutputStream(new DataOutputStream(client.getOutputStream()));
 			
-			// Process commands until the client disconnects
+			// Client has not yet logged in.  In this state, we only allow /Login
+			// Break when the user is logged in and ready to do other commands
+			// all commands besides /Login are bad syntax here
 			while (true) { 
 				// Get the client's request
 				String request = fromClient.readLine();
+
+				// so Eclipse won't be mad until we get actual code in here
+				break;
+			}
+
+			// here the user is already logged in - we process /Public /Private /Users and /Close
+			// a /Login here is bad syntax
+			while (true) {
+
 			}
 
 		}

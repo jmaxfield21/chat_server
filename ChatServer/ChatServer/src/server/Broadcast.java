@@ -53,7 +53,7 @@ public class Broadcast implements Runnable {
 				msg = taken.y; // Get a message when it becomes available
 			}
 			catch (InterruptedException ie) {
-				continue; // We didn't get any input, so just start over
+				continue; // We didn't get any input, so just start over and try to get the message again
 			}
 
 			int newLine = msg.indexOf("\r\n"); // get the index of the first occurrence of \r\n

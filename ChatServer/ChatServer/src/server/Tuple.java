@@ -20,6 +20,10 @@ public class Tuple<X, Y> {
 		this.y = y;
 	}
 
+	/** 
+	Two tuples are for this project considered equal if they have
+	the same x value.
+	*/
 	public boolean equals(Object other) {
 		if (other == null) 
 			return false;
