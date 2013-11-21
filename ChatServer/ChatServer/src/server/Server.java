@@ -16,8 +16,6 @@ import java.io.*;
 import java.util.concurrent.*;
 import java.util.Vector;
 
-// TODO change the generic array issue
-
 
 public class Server {
 	public static final int DEFAULT_PORT = 4020; 
@@ -28,6 +26,7 @@ public class Server {
 
 	public Server() {
 		initialize();
+		getUsers();
 		listen();
 	} // end constructor
 
@@ -79,15 +78,29 @@ public class Server {
 	This provides client threads an easy way to handle the /users command.
 	*/
 	public String[] getUsers() {
-		Tuple<String, OutputStream>[] userArray = null;
-		userArray = users.toArray(userArray);
+		Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
+		users.copyInto(userArray);
+		Tuple<String, OutputStream> entry;
+
 		String[] activeUsers = new String[userArray.length];
 
+		int count = 0;
+
 		for (int i = 0; i < activeUsers.length; i++) {
-			activeUsers[i] = userArray[i].x;
+			if (userArray[i] != null) {
+				entry = (Tuple<String, OutputStream>) userArray[i];
+				activeUsers[i] = entry.x;
+				count++;
+			}
 		}
 
-		return activeUsers;
+		String[] rv = new String[count];
+
+		for (int i = 0; i < count; i++) {
+			rv[i] = activeUsers[i];
+		}
+
+		return rv;
 	}
 
 	/** 
@@ -103,21 +116,25 @@ public class Server {
 
 		users.add(new Tuple<String, OutputStream>(username, toClient));
 
-		Tuple<String, OutputStream>[] userArray = null;
-		userArray = users.toArray(userArray);
+		Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
+		users.copyInto(userArray);
+		Tuple<String, OutputStream> entry;
 
 		String response = "]Connected ";
 		response += username;
 		response += "\r\n";
 
 		for (int i = 0; i < userArray.length; i++) {
-			try {
-				// userArray[i].y yields an OutputStream that can talk to that client
-				userArray[i].y.write(response.getBytes());
-				userArray[i].y.flush();
-			} 
-			catch (IOException ioe) { 
-				// We can't send a message to this user, but the others should still get it
+			if (userArray[i] != null) {
+				entry = (Tuple<String, OutputStream>) userArray[i];
+				try {
+					// entry.y yields an OutputStream that can talk to that client
+					entry.y.write(response.getBytes());
+					entry.y.flush();
+				} 
+				catch (IOException ioe) { 
+					// We can't send a message to this user, but the others should still get it
+				}
 			}
 		}
 		
@@ -134,21 +151,25 @@ public class Server {
 		// in this case the String usernames.
 		users.remove(new Tuple<String, OutputStream>(username, toClient));
 
-		Tuple<String, OutputStream>[] userArray = null;
-		userArray = users.toArray(userArray);
+		Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
+		users.copyInto(userArray);
+		Tuple<String, OutputStream> entry;
 
 		String response = "]Disconnected ";
 		response += username;
 		response += "\r\n";
 
 		for (int i = 0; i < userArray.length; i++) {
-			try {
-				// userArray[i].y yields an OutputStream that can talk to that client
-				userArray[i].y.write(response.getBytes());
-				userArray[i].y.flush();
-			} 
-			catch (IOException ioe) { 
-				// We can't send a message to this user, but the others should still get it
+			if (userArray[i] != null) {
+				entry = (Tuple<String, OutputStream>) userArray[i];
+				try {
+					// entry.y yields an OutputStream that can talk to that client
+					entry.y.write(response.getBytes());
+					entry.y.flush();
+				} 
+				catch (IOException ioe) { 
+					// We can't send a message to this user, but the others should still get it
+				}
 			}
 		}
 	}

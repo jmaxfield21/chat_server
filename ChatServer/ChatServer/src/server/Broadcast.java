@@ -16,8 +16,6 @@ creates the appropriate responses to the recipients and sends the
 message to their respective outputStreams.
  */
 
-// TODO change the generic array issue
-
 import java.util.concurrent.*;
 import java.util.Vector;
 import java.io.IOException;
@@ -28,9 +26,6 @@ import protocol.Protocol;
 public class Broadcast implements Runnable {
 	private Vector<Tuple<String, OutputStream>> users;
 	private BlockingQueue<Tuple<String, String>> messages;
-
-	private Tuple<String, OutputStream>[] userArray; 
-
 
 	public Broadcast(Vector<Tuple<String, OutputStream>> initUsers, BlockingQueue<Tuple<String, String>>
 	initMessages) {
@@ -82,17 +77,22 @@ public class Broadcast implements Runnable {
 				response += sender; // the sender's username
 				response += msgBody; // this includes the \r\n, body, and \u0004
 
-				// Specifying userArray as a parameter means the return type will be Tuple<String, OutputStream>[] 
-				userArray = users.toArray(userArray); 
+				Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
+				users.copyInto(userArray); 
+
+				Tuple<String, OutputStream> entry;
 
 				for (int i = 0; i < userArray.length; i++) {
-					try {
-						// userArray[i].y yields an OutputStream that can talk to that client
-						userArray[i].y.write(response.getBytes());
-						userArray[i].y.flush();
-					} 
-					catch (IOException ioe) { 
-						// We can't send a message to this user, but the others should still get it
+					if (userArray[i] != null) {
+						entry = (Tuple<String, OutputStream>) userArray[i];
+						try {
+							// entry.y yields an OutputStream that can talk to that client
+							entry.y.write(response.getBytes());
+							entry.y.flush();
+						} 
+						catch (IOException ioe) { 
+							// We can't send a message to this user, but the others should still get it
+						}
 					}
 				}
 			}
@@ -103,21 +103,26 @@ public class Broadcast implements Runnable {
 				response += sender; // the sender's username
 				response += msgBody; // this includes the \r\n, body, and \u0004
 
-				// Specifying userArray as a parameter means the return type will be Tuple<String, OutputStream>[]
-				userArray = users.toArray(userArray);
+				Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
+				users.copyInto(userArray); 
+
+				Tuple<String, OutputStream> entry;
 
 				for (int i = 0; i < userArray.length; i++) {
-					// userArray[i].x is the user name string and userArray[i].y is the outputStream
-					// note the username Is case sensitive
-					if (userArray[i].x.equals(uname)) {
-						try { 
-							userArray[i].y.write(response.getBytes());
-							userArray[i].y.flush();
+					if (userArray[i] != null) {
+						entry = (Tuple<String, OutputStream>) userArray[i]; 
+						// entry.x is the user name string and entry.y is the outputStream
+						// note the username Is case sensitive
+						if (entry.x.equals(uname)) {
+							try { 
+								entry.y.write(response.getBytes());
+								entry.y.flush();
+							}
+							catch (IOException ioe) { 
+								// We can't send a message to this user, but the others should still get it
+							}
+							break; // We send to at most one user so we're done
 						}
-						catch (IOException ioe) { 
-							// We can't send a message to this user, but the others should still get it
-						}
-						break; // We send to at most one user so we're done
 					}
 				}
 			}

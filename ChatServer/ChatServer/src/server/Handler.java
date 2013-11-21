@@ -41,12 +41,24 @@ public class Handler implements Runnable {
 			while (true) { 
 				// Get the client's request
 				String request = fromClient.readLine(); // login commands are only 1 line, longer is bad syntax anyway
+				String command = "";
+				String requestedName = "";
+
+				if (request == null) {
+					continue;
+				}
 
 				// TODO verify the request is valid syntax - from here assumes syntax is good
 				int firstSpace = request.indexOf(" ");
-				String command = request.substring(0, firstSpace);
-				int termChar = request.indexOf("\r\n");
-				String requestedName = request.substring(firstSpace + 1, termChar);
+				if (firstSpace >= 0) {
+					command = request.substring(0, firstSpace);
+					// int termChar = request.indexOf("\r\n");
+					requestedName = request.substring(firstSpace + 1, request.length());
+				}
+				else {
+					// TODO send bad syntax
+					continue;
+				}
 
 				if (command.equalsIgnoreCase(Protocol.CLIENT_LOGIN)) {
 					if (Protocol.isValidUsername(requestedName)) {
@@ -86,11 +98,21 @@ public class Handler implements Runnable {
 				// Get the client's request
 				String request = fromClient.readLine(); // most commands are only 1 line (get more if needed)
 
+				if (request == null) {
+					continue;
+				}
+
 				// TODO verify the request is valid syntax - from here assumes syntax is good
 				int firstSpace = request.indexOf(" ");
-				String command = request.substring(0, firstSpace);
-				int termChar = request.indexOf("\r\n");
-				String requestedName = request.substring(firstSpace + 1, termChar);
+				String command;
+				if (firstSpace >= 0) {
+					command = request.substring(0, firstSpace);
+					// int termChar = request.indexOf("\r\n");
+					//String parameter = request.substring(firstSpace + 1, request.length());
+				}
+				else {
+					command = request;
+				}
 
 				if (command.equalsIgnoreCase(Protocol.CLIENT_LOGIN)) {
 					// TODO send a badsyntax error
