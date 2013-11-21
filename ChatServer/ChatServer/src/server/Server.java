@@ -24,6 +24,8 @@ public class Server {
 	private static Vector<Tuple<String, OutputStream>> users; // Tuple<user's name:their output stream>
 	private static BlockingQueue<Tuple<String, String>> messages; // Tuple<sender's user name:message>
 
+	private Tuple<String, OutputStream>[] userArray; 
+
 	/** 
 	This provides client threads an easy way to handle the /users command.
 	*/
@@ -35,11 +37,31 @@ public class Server {
 	Client threads should call this method to add the user to the vector.
 	The parameters are the user's name and an OutputStream to reach them.
 	*/
-	public void addUser(String username, OutputStream toClient) {
+	public boolean addUser(String username, OutputStream toClient) {
+		if (users.contains(new Tuple<String, OutputStream>(username, toClient))) {
+			return false;
+		}
+
 		users.add(new Tuple<String, OutputStream>(username, toClient));
-		// TODO here is where we need to send all users the ]Connected command with this username
-		// we may want to invoke this in a separate thread like MessageAdder but could probably
-		// do it here as well.
+
+		userArray = users.toArray(userArray);
+
+		String response = "]Connected ";
+		response += username;
+		response += "\r\n";
+
+		for (int i = 0; i < userArray.length; i++) {
+			try {
+				// userArray[i].y yields an OutputStream that can talk to that client
+				userArray[i].y.write(response.getBytes());
+				userArray[i].y.flush();
+			} 
+			catch (IOException ioe) { 
+				// We can't send a message to this user, but the others should still get it
+			}
+		}
+		
+		return true;
 	}
 
 	/** 
@@ -52,9 +74,22 @@ public class Server {
 		// in this case the String usernames.
 		users.remove(new Tuple<String, OutputStream>(username, toClient));
 
-		// TODO here is where we need to send all users the ]Disconnected command with this username
-		// we may want to invoke this in a separate thread like MessageAdder but could probably
-		// do it here as well.
+		userArray = users.toArray(userArray);
+
+		String response = "]Disconnected ";
+		response += username;
+		response += "\r\n";
+
+		for (int i = 0; i < userArray.length; i++) {
+			try {
+				// userArray[i].y yields an OutputStream that can talk to that client
+				userArray[i].y.write(response.getBytes());
+				userArray[i].y.flush();
+			} 
+			catch (IOException ioe) { 
+				// We can't send a message to this user, but the others should still get it
+			}
+		}
 	}
 
 	/** 
