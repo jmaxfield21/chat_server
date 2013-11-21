@@ -131,9 +131,13 @@ public class Handler implements Runnable {
 							continue;
 						}
 						else {
-							if ((!(nextLine).contains(Protocol.EOT)) && (msgLength < Protocol.MAX_MESSAGE_LENGTH))
-							wholeCommand += nextLine;
-							msgLength += nextLine.length();
+							if ((!(nextLine).contains(Protocol.EOT)) && (msgLength < Protocol.MAX_MESSAGE_LENGTH)) {
+								wholeCommand += nextLine;
+								msgLength += nextLine.length();
+							}
+							else {
+								break;
+							}
 						}
 					}
 
