@@ -9,6 +9,8 @@ package protocol;
  */
 
 public class Protocol {
+
+	public static final int MAX_MESSAGE_LENGTH = 10000;
 	
 	//Client side commands that are sent to the server
 	public static final String CLIENT_LOGIN = "/Login";
@@ -30,12 +32,14 @@ public class Protocol {
 	
 	//End of transmission command
 	public static final String EOT = "\u0004"; 
+	public static final char EOT_CHAR = '\u0004';
 	
 	public Protocol() {	}
 	
 	
 	//Validates a requested username
 	public static boolean isValidUsername(String userName) {
+		// TODO verify alphanumeric characters?
 		if(userName.length() > 16 || userName == null) {
 			return false;
 		}

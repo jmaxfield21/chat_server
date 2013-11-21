@@ -16,6 +16,8 @@ import java.io.*;
 import java.util.concurrent.*;
 import java.util.Vector;
 
+// TODO change the generic array issue
+
 
 public class Server {
 	public static final int DEFAULT_PORT = 4020; 
@@ -24,18 +26,75 @@ public class Server {
 	private static Vector<Tuple<String, OutputStream>> users; // Tuple<user's name:their output stream>
 	private static BlockingQueue<Tuple<String, String>> messages; // Tuple<sender's user name:message>
 
-	private Tuple<String, OutputStream>[] userArray; 
+	public Server() {
+		initialize();
+		listen();
+	} // end constructor
+
+	private void initialize() {
+		users = new Vector<Tuple<String, OutputStream>>();
+		//The LinkedBlockingQueue is all-purpose and does not have a mandatory capacity
+		messages = new LinkedBlockingQueue<Tuple<String, String>>();
+
+		// Create the broadcast thread
+		Runnable messenger = new Broadcast(users, messages);
+		exec.execute(messenger);		
+	}
+
+	private void listen() {
+		ServerSocket sock = null;
+
+		try {
+			sock = new ServerSocket(DEFAULT_PORT);
+			
+			// Listen for client connections and service them in a separate thread
+			while (true) {
+				Runnable task = new Handler(sock.accept(), this);
+				exec.execute(task);
+			}
+		}
+		catch (IOException ioe) {
+			System.err.println("An IO error has occurred.");
+		}
+		catch (SecurityException se) {
+			System.err.println("A security error has occurred.");
+		}
+		catch (IllegalArgumentException iae) {
+			System.err.println("Invalid port number!  The port number needs to be between 0 and 65535.");
+		}
+		finally {
+			if (sock != null) {
+				try {
+					sock.close();
+				}
+				catch (IOException ioe) {
+					System.err.println("The socket may not have closed correctly...");
+				}
+			}
+		} // end try-catch-finally
+	}
+
 
 	/** 
 	This provides client threads an easy way to handle the /users command.
 	*/
-	public Vector<Tuple<String, OutputStream>> getUsers() {
-		return users;
+	public String[] getUsers() {
+		Tuple<String, OutputStream>[] userArray = null;
+		userArray = users.toArray(userArray);
+		String[] activeUsers = new String[userArray.length];
+
+		for (int i = 0; i < activeUsers.length; i++) {
+			activeUsers[i] = userArray[i].x;
+		}
+
+		return activeUsers;
 	}
 
 	/** 
 	Client threads should call this method to add the user to the vector.
 	The parameters are the user's name and an OutputStream to reach them.
+	Returns true if the user was added, and false if the user could not be
+	added as the username was taken.
 	*/
 	public boolean addUser(String username, OutputStream toClient) {
 		if (users.contains(new Tuple<String, OutputStream>(username, toClient))) {
@@ -44,6 +103,7 @@ public class Server {
 
 		users.add(new Tuple<String, OutputStream>(username, toClient));
 
+		Tuple<String, OutputStream>[] userArray = null;
 		userArray = users.toArray(userArray);
 
 		String response = "]Connected ";
@@ -74,6 +134,7 @@ public class Server {
 		// in this case the String usernames.
 		users.remove(new Tuple<String, OutputStream>(username, toClient));
 
+		Tuple<String, OutputStream>[] userArray = null;
 		userArray = users.toArray(userArray);
 
 		String response = "]Disconnected ";
@@ -103,44 +164,6 @@ public class Server {
 	}
 	
 	public static void main(String[] args) {
-
-		users = new Vector<Tuple<String, OutputStream>>();
-		//The LinkedBlockingQueue is all-purpose and does not have a mandatory capacity
-		messages = new LinkedBlockingQueue<Tuple<String, String>>();
-
-		// Create the broadcast thread
-		Runnable messenger = new Broadcast(users, messages);
-		exec.execute(messenger);
-	
-		ServerSocket sock = null;
-		
-		try {
-			sock = new ServerSocket(DEFAULT_PORT);
-			
-			// Listen for client connections and service them in a separate thread
-			while (true) {
-				Runnable task = new Handler(sock.accept());
-				exec.execute(task);
-			}
-		}
-		catch (IOException ioe) {
-			System.err.println("An IO error has occurred.");
-		}
-		catch (SecurityException se) {
-			System.err.println("A security error has occurred.");
-		}
-		catch (IllegalArgumentException iae) {
-			System.err.println("Invalid port number!  The port number needs to be between 0 and 65535.");
-		}
-		finally {
-			if (sock != null) {
-				try {
-					sock.close();
-				}
-				catch (IOException ioe) {
-					System.err.println("The socket may not have closed correctly...");
-				}
-			}
-		} // end try-catch-finally
+		Server chatServer = new Server();		
 	} // end main
 } // end Server

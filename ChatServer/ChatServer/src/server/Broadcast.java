@@ -16,6 +16,8 @@ creates the appropriate responses to the recipients and sends the
 message to their respective outputStreams.
  */
 
+// TODO change the generic array issue
+
 import java.util.concurrent.*;
 import java.util.Vector;
 import java.io.IOException;

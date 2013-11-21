@@ -9,14 +9,17 @@ This class handles each client connection.
 
 import java.io.*;
 import java.net.*;
+import protocol.Protocol;
 
 
 public class Handler implements Runnable {
 	private Socket client;
 	private String username; // This client's user's username
+	private Server chatServer; // to call the Server's various methods
 
-	public Handler(Socket clientSocket) {
+	public Handler(Socket clientSocket, Server theChatServer) {
 		this.client = clientSocket;
+		this.chatServer = theChatServer;
 	}
 
 	/**
@@ -37,21 +40,110 @@ public class Handler implements Runnable {
 			// all commands besides /Login are bad syntax here
 			while (true) { 
 				// Get the client's request
-				String request = fromClient.readLine();
+				String request = fromClient.readLine(); // login commands are only 1 line, longer is bad syntax anyway
 
-				// so Eclipse won't be mad until we get actual code in here
-				break;
+				// TODO verify the request is valid syntax - from here assumes syntax is good
+				int firstSpace = request.indexOf(" ");
+				String command = request.substring(0, firstSpace);
+				int termChar = request.indexOf("\r\n");
+				String requestedName = request.substring(firstSpace + 1, termChar);
+
+				if (command.equalsIgnoreCase(Protocol.CLIENT_LOGIN)) {
+					if (Protocol.isValidUsername(requestedName)) {
+						if (chatServer.addUser(requestedName, toClient)) {
+							// user is now logged in
+							String response = Protocol.SERVER_WELCOME + "\r\n";
+							toClient.write(response.getBytes());
+							toClient.flush();
+							this.username = requestedName; // this is their real username now
+							break; // go on to the logged-in loop
+						}
+						else {
+							String response = Protocol.SERVER_USER_TAKEN + "\r\n";
+							toClient.write(response.getBytes());
+							toClient.flush();
+						}
+					}
+					else {
+						String response = Protocol.SERVER_BAD_SYNTAX + " Illegal username.\r\n";
+						toClient.write(response.getBytes());
+						toClient.flush();
+					}
+				}
+				else if (command.equalsIgnoreCase(Protocol.CLIENT_CLOSE)) {
+					// TODO close the connection
+				}
+				else {
+					String response = Protocol.SERVER_BAD_SYNTAX + " You are not logged in, and may only send login requests.\r\n";
+					toClient.write(response.getBytes());
+					toClient.flush();
+				}
 			}
 
 			// here the user is already logged in - we process /Public /Private /Users and /Close
 			// a /Login here is bad syntax
 			while (true) {
+				// Get the client's request
+				String request = fromClient.readLine(); // most commands are only 1 line (get more if needed)
 
+				// TODO verify the request is valid syntax - from here assumes syntax is good
+				int firstSpace = request.indexOf(" ");
+				String command = request.substring(0, firstSpace);
+				int termChar = request.indexOf("\r\n");
+				String requestedName = request.substring(firstSpace + 1, termChar);
+
+				if (command.equalsIgnoreCase(Protocol.CLIENT_LOGIN)) {
+					// TODO send a badsyntax error
+				}
+				else if (command.equalsIgnoreCase(Protocol.CLIENT_PUBLIC_MSG) || command.equalsIgnoreCase(Protocol.CLIENT_PRIVATE_MSG)) {
+					String wholeCommand = request;
+
+					char nextChar; 
+					char[] messageBody = new char[Protocol.MAX_MESSAGE_LENGTH];
+					int i = 0;
+
+					while( ((nextChar = (char)fromClient.read()) != Protocol.EOT_CHAR) && (i < messageBody.length)) {
+						messageBody[i] = nextChar;
+						i++;
+					}
+
+					if (i >= messageBody.length) {
+						// TODO send an error - message was too long, but we'll send the first part
+					}
+
+					// using a string contructor from char[], offset, and length
+					wholeCommand += new String(messageBody, 0, i);
+					wholeCommand += Protocol.EOT;
+
+					chatServer.addMessage(this.username, wholeCommand);
+				}
+				else if (command.equalsIgnoreCase(Protocol.CLIENT_USER_REQUEST)) {
+					String[] activeUsers = chatServer.getUsers();
+					String response = Protocol.SERVER_ACTIVE_USERS + " ";
+					if (activeUsers.length == 0) {
+						response += "\r\n";
+					}
+					else {
+						int i;
+						for (i = 0; i < activeUsers.length-1; i++) {
+							response += activeUsers[i] + ",";
+						}
+						response += activeUsers[i] + "\r\n";
+					}
+
+					toClient.write(response.getBytes());
+					toClient.flush();
+				}
+				else if (command.equalsIgnoreCase(Protocol.CLIENT_CLOSE)) {
+					// TODO close to the connection
+				}
 			}
 
 		}
 		catch (IOException ioe) {
-			// TODO: handle this?
+			// TODO: handle this? Is this when the communication is closed for example?
+			// TODO DO we need to have smaller try-catch to attempt to fix smaller issues?
+			// or is an issue like this just too severe to reconcile...
 		}
 		finally {
 			// Attempt to close all sockets and connections which aren't currently null
