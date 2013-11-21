@@ -28,4 +28,27 @@ public class Protocol {
 	public static final String SERVER_ERROR = "]Error";
 	public static final String SERVER_BAD_SYNTAX = "]BadSyntax";
 	
+	//End of transmission command
+	public static final String EOT = "\u0004"; 
+	
+	public Protocol() {	}
+	
+	
+	//Validates a requested username
+	public static boolean isValidUsername(String userName) {
+		if(userName.length() > 16 || userName == null) {
+			return false;
+		}
+		return true;
+	}
+	
+	public static boolean isProperCommand(String command) {
+		//TODO flesh out the needed command detail
+		return true;
+	}
+	
+	public static String errorMsg() {
+		return "An error occured";
+	}
+	
 }

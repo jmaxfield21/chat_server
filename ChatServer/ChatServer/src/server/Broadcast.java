@@ -24,7 +24,6 @@ import java.io.OutputStream;
 import protocol.Protocol;
 
 public class Broadcast implements Runnable {
-	private Protocol protocol;
 	private Vector<Tuple<String, OutputStream>> users;
 	private BlockingQueue<Tuple<String, String>> messages;
 
@@ -71,13 +70,13 @@ public class Broadcast implements Runnable {
 				verb = command;
 			}
 
-			if (!(verb.equalsIgnoreCase(protocol.CLIENT_PUBLIC_MSG) || verb.equalsIgnoreCase(protocol.CLIENT_PRIVATE_MSG))) {
+			if (!(verb.equalsIgnoreCase(Protocol.CLIENT_PUBLIC_MSG) || verb.equalsIgnoreCase(Protocol.CLIENT_PRIVATE_MSG))) {
 				// This is a bad request...
 			}
-			else if (verb.equalsIgnoreCase(protocol.CLIENT_PUBLIC_MSG)) {
+			else if (verb.equalsIgnoreCase(Protocol.CLIENT_PUBLIC_MSG)) {
 				// send a public message
 				String response = "";
-				response += protocol.SERVER_PUBLIC_MSG;
+				response += Protocol.SERVER_PUBLIC_MSG;
 				response += sender; // the sender's username
 				response += msgBody; // this includes the \r\n, body, and \u0004
 
@@ -98,7 +97,7 @@ public class Broadcast implements Runnable {
 			else {
 				// send a private message
 				String response = "";
-				response += protocol.SERVER_PRIVATE_MSG;
+				response += Protocol.SERVER_PRIVATE_MSG;
 				response += sender; // the sender's username
 				response += msgBody; // this includes the \r\n, body, and \u0004
 

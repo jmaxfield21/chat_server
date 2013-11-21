@@ -11,6 +11,7 @@ generally the username string). Note also that the username String
 is case-sensitive in the protocol, so the checking will be appropriate.
 */
 
+@SuppressWarnings("unchecked")
 public class Tuple<X, Y> {
 	public final X x;
 	public final Y y;

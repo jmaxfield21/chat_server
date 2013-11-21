@@ -16,10 +16,8 @@ import java.io.*;
 import java.util.concurrent.*;
 import java.util.Vector;
 
-import protocol.Protocol;
 
 public class Server {
-	private Protocol protocol;
 	public static final int DEFAULT_PORT = 4020; 
 	private static final Executor exec = Executors.newCachedThreadPool();
 
@@ -86,7 +84,7 @@ public class Server {
 			
 			// Listen for client connections and service them in a separate thread
 			while (true) {
-				Runnable task = new Handler(sock.accept(), users, messages);
+				Runnable task = new Handler(sock.accept());
 				exec.execute(task);
 			}
 		}
