@@ -90,7 +90,7 @@ public class Handler implements Runnable {
 					toClient.write(response.getBytes());
 					toClient.flush();
 				}
-			}
+			} // end while
 
 			// here the user is already logged in - we process /Public /Private /Users and /Close
 			// a /Login here is bad syntax
@@ -115,27 +115,35 @@ public class Handler implements Runnable {
 				}
 
 				if (command.equalsIgnoreCase(Protocol.CLIENT_LOGIN)) {
-					// TODO send a badsyntax error
+					String response = Protocol.SERVER_BAD_SYNTAX + " You are already logged in, and may not send login requests.\r\n";
+					toClient.write(response.getBytes());
+					toClient.flush();
 				}
 				else if (command.equalsIgnoreCase(Protocol.CLIENT_PUBLIC_MSG) || command.equalsIgnoreCase(Protocol.CLIENT_PRIVATE_MSG)) {
 					String wholeCommand = request;
 
-					char nextChar; 
-					char[] messageBody = new char[Protocol.MAX_MESSAGE_LENGTH];
-					int i = 0;
+					String nextLine; 
+					int msgLength = 0;
 
-					while( ((nextChar = (char)fromClient.read()) != Protocol.EOT_CHAR) && (i < messageBody.length)) {
-						messageBody[i] = nextChar;
-						i++;
+					while(true) {
+						nextLine = fromClient.readLine();
+						if (nextLine == null) {
+							continue;
+						}
+						else {
+							if ((!(nextLine).contains(Protocol.EOT)) && (msgLength < Protocol.MAX_MESSAGE_LENGTH))
+							wholeCommand += nextLine;
+							msgLength += nextLine.length();
+						}
 					}
 
-					if (i >= messageBody.length) {
+					if (msgLength >= Protocol.MAX_MESSAGE_LENGTH) {
 						// TODO send an error - message was too long, but we'll send the first part
 					}
 
-					// using a string contructor from char[], offset, and length
-					wholeCommand += new String(messageBody, 0, i);
-					wholeCommand += Protocol.EOT;
+					String lastPart = nextLine.substring(0, nextLine.indexOf(Protocol.EOT));
+
+					wholeCommand += lastPart; // add the last line with the EOT
 
 					chatServer.addMessage(this.username, wholeCommand);
 				}
