@@ -27,7 +27,6 @@ public class Server {
 
 	public Server() {
 		initialize();
-		getUsers();
 		listen();
 	} // end constructor
 

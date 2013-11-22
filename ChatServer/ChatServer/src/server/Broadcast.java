@@ -23,6 +23,7 @@ import java.io.OutputStream;
 
 import protocol.Protocol;
 
+@SuppressWarnings("unchecked")
 public class Broadcast implements Runnable {
 	private Vector<Tuple<String, OutputStream>> users;
 	private BlockingQueue<Tuple<String, String>> messages;
