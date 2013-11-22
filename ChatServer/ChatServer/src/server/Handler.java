@@ -132,7 +132,7 @@ public class Handler implements Runnable {
 						}
 						else {
 							if ((!(nextLine.contains(Protocol.EOT))) && (msgLength < Protocol.MAX_MESSAGE_LENGTH)) {
-								wholeCommand += "\r\n" + vnextLine;
+								wholeCommand += "\r\n" + nextLine;
 								msgLength += nextLine.length();
 							}
 							else {
