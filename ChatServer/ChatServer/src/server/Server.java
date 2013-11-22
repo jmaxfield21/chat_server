@@ -17,6 +17,7 @@ import java.util.concurrent.*;
 import java.util.Vector;
 
 
+@SuppressWarnings("unchecked")
 public class Server {
 	public static final int DEFAULT_PORT = 4020; 
 	private static final Executor exec = Executors.newCachedThreadPool();
