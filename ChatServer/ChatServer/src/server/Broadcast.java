@@ -74,7 +74,7 @@ public class Broadcast implements Runnable {
 				// send a public message
 				String response = "";
 				response += Protocol.SERVER_PUBLIC_MSG;
-				response += sender; // the sender's username
+				response += " " + sender; // the sender's username
 				response += msgBody; // this includes the \r\n, body, and \u0004
 
 				Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
@@ -100,7 +100,7 @@ public class Broadcast implements Runnable {
 				// send a private message
 				String response = "";
 				response += Protocol.SERVER_PRIVATE_MSG;
-				response += sender; // the sender's username
+				response += " " + sender; // the sender's username
 				response += msgBody; // this includes the \r\n, body, and \u0004
 
 				Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe

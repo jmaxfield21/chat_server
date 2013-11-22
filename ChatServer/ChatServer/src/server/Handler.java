@@ -131,8 +131,8 @@ public class Handler implements Runnable {
 							continue;
 						}
 						else {
-							if ((!(nextLine).contains(Protocol.EOT)) && (msgLength < Protocol.MAX_MESSAGE_LENGTH)) {
-								wholeCommand += nextLine;
+							if ((!(nextLine.contains(Protocol.EOT))) && (msgLength < Protocol.MAX_MESSAGE_LENGTH)) {
+								wholeCommand += "\r\n" + vnextLine;
 								msgLength += nextLine.length();
 							}
 							else {
@@ -147,7 +147,7 @@ public class Handler implements Runnable {
 
 					String lastPart = nextLine.substring(0, nextLine.indexOf(Protocol.EOT));
 
-					wholeCommand += lastPart; // add the last line with the EOT
+					wholeCommand += "\r\n" + lastPart; // add the last line with the EOT
 
 					chatServer.addMessage(this.username, wholeCommand);
 				}
