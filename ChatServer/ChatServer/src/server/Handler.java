@@ -48,7 +48,13 @@ public class Handler implements Runnable {
 					continue;
 				}
 
-				// TODO verify the request is valid syntax - from here assumes syntax is good
+				if (!(Protocol.isProperCommand(request))) {
+					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed request.\r\n";
+					toClient.write(response.getBytes());
+					toClient.flush();
+					continue;
+				}
+				
 				int firstSpace = request.indexOf(" ");
 				if (firstSpace >= 0) {
 					command = request.substring(0, firstSpace);
@@ -102,7 +108,13 @@ public class Handler implements Runnable {
 					continue;
 				}
 
-				// TODO verify the request is valid syntax - from here assumes syntax is good
+				if (!(Protocol.isProperCommand(request))) {
+					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed request.\r\n";
+					toClient.write(response.getBytes());
+					toClient.flush();
+					continue;
+				}
+
 				int firstSpace = request.indexOf(" ");
 				String command;
 				if (firstSpace >= 0) {
@@ -120,7 +132,7 @@ public class Handler implements Runnable {
 					toClient.flush();
 				}
 				else if (command.equalsIgnoreCase(Protocol.CLIENT_PUBLIC_MSG) || command.equalsIgnoreCase(Protocol.CLIENT_PRIVATE_MSG)) {
-					String wholeCommand = request;
+					String wholeCommand = request + "\r\n";
 
 					String nextLine; 
 					int msgLength = 0;
@@ -132,7 +144,7 @@ public class Handler implements Runnable {
 						}
 						else {
 							if ((!(nextLine.contains(Protocol.EOT))) && (msgLength < Protocol.MAX_MESSAGE_LENGTH)) {
-								wholeCommand += "\r\n" + nextLine;
+								wholeCommand += nextLine + "\r\n";
 								msgLength += nextLine.length();
 							}
 							else {
@@ -141,39 +153,44 @@ public class Handler implements Runnable {
 						}
 					}
 
-					if (msgLength >= Protocol.MAX_MESSAGE_LENGTH) {
-						// TODO send an error - message was too long, but we'll send the first part
-					}
+					if (msgLength >= Protocol.MAX_MESSAGE_LENGTH) 
+					{
+						if (!(Protocol.isProperCommand(request))) {
+							String response = Protocol.SERVER_BAD_SYNTAX + " Message too long.\r\n";
+							toClient.write(response.getBytes());
+							toClient.flush();
+							continue;
+						}
 
-					String lastPart = nextLine.substring(0, nextLine.indexOf(Protocol.EOT));
+					String lastPart = nextLine.substring(0, nextLine.indexOf(Protocol.EOT + 1));
 
-					wholeCommand += "\r\n" + lastPart; // add the last line with the EOT
+					wholeCommand += lastPart; // add the last line with the EOT
 
 					chatServer.addMessage(this.username, wholeCommand);
-				}
-				else if (command.equalsIgnoreCase(Protocol.CLIENT_USER_REQUEST)) {
-					String[] activeUsers = chatServer.getUsers();
-					String response = Protocol.SERVER_ACTIVE_USERS + " ";
-					if (activeUsers.length == 0) {
-						response += "\r\n";
 					}
-					else {
-						int i;
-						for (i = 0; i < activeUsers.length-1; i++) {
-							response += activeUsers[i] + ",";
+					else if (command.equalsIgnoreCase(Protocol.CLIENT_USER_REQUEST)) {
+						String[] activeUsers = chatServer.getUsers();
+						String response = Protocol.SERVER_ACTIVE_USERS + " ";
+						if (activeUsers.length == 0) {
+							response += "\r\n";
 						}
-						response += activeUsers[i] + "\r\n";
+						else {
+							int i;
+							for (i = 0; i < activeUsers.length-1; i++) {
+								response += activeUsers[i] + ",";
+							}
+							response += activeUsers[i] + "\r\n";
+						}
+	
+						toClient.write(response.getBytes());
+						toClient.flush();
 					}
-
-					toClient.write(response.getBytes());
-					toClient.flush();
-				}
-				else if (command.equalsIgnoreCase(Protocol.CLIENT_CLOSE)) {
-					// TODO close to the connection
-				}
-			}
-
-		}
+					else if (command.equalsIgnoreCase(Protocol.CLIENT_CLOSE)) {
+						// TODO close to the connection
+					} // end else if
+				} // end else if
+			} // end while
+		} //end try
 		catch (IOException ioe) {
 			// TODO: handle this? Is this when the communication is closed for example?
 			// TODO DO we need to have smaller try-catch to attempt to fix smaller issues?

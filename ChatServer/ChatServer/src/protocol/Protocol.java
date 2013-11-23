@@ -13,7 +13,8 @@ public class Protocol {
 	public static final int MAX_MESSAGE_LENGTH = 10000;
 	private static final char[] ALPHA_NUMERIC = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
 			'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-			'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
+			'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 
+			'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
 	//Client side commands that are sent to the server
 	public static final String CLIENT_LOGIN = "/Login";
@@ -35,7 +36,7 @@ public class Protocol {
 
 	//End of transmission command
 	public static final String EOT = "\u0004"; 
-	public static final char EOT_CHAR = '\u0004';
+	//public static final char EOT_CHAR = '\u0004';
 
 	public Protocol() {	}
 
@@ -78,19 +79,31 @@ public class Protocol {
 						break;
 					}
 				}
+				break;
 			}
 			else if(cmd[i] == ' ') {
 				String[] parsedCmd = command.split(" ");
+				if (parsedCmd.length < 2) {
+					break;
+				}
+
 				if(parsedCmd[0].equalsIgnoreCase(CLIENT_LOGIN)) {
+					if (parsedCmd[1].charAt(0) == '\r' || parsedCmd[1].charAt(0) == '\n') {
+						return false;
+					}
 					correct = true;
 					break;
 				}
 				else if(parsedCmd[0].equalsIgnoreCase(CLIENT_PRIVATE_MSG)) {
+					if (parsedCmd[1].charAt(0) == '\r' || parsedCmd[1].charAt(0) == '\n') {
+						return false;
+					}
 					if(parsedCmd[parsedCmd.length].equals(EOT)) {
 						correct = true;
 						break;
 					}
 				}
+				break;
 			}
 		}
 		return correct;
