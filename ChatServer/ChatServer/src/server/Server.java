@@ -16,6 +16,8 @@ import java.io.*;
 import java.util.concurrent.*;
 import java.util.Vector;
 
+import protocol.Protocol;
+
 
 @SuppressWarnings("unchecked")
 public class Server {
@@ -120,7 +122,7 @@ public class Server {
 		users.copyInto(userArray);
 		Tuple<String, OutputStream> entry;
 
-		String response = "]Connected ";
+		String response = Protocol.SERVER_USER_CONNECTED + " ";
 		response += username;
 		response += "\r\n";
 
@@ -155,7 +157,7 @@ public class Server {
 		users.copyInto(userArray);
 		Tuple<String, OutputStream> entry;
 
-		String response = "]Disconnected ";
+		String response = Protocol.SERVER_USER_DISCONNECTED + " ";
 		response += username;
 		response += "\r\n";
 
