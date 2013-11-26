@@ -16,20 +16,21 @@ public class Handler implements Runnable {
 	private Socket client;
 	private String username; // This client's user's username
 	private Server chatServer; // to call the Server's various methods
+	private BufferedReader fromClient;
+	private BufferedOutputStream toClient;
 
 	public Handler(Socket clientSocket, Server theChatServer) {
 		this.client = clientSocket;
 		this.chatServer = theChatServer;
+		this.username = "";
+		fromClient = null;
+		toClient = null;
 	}
 
 	/**
 	 * This method is invoked in a separate thread.
 	 */
 	public void run() {
-		// we need a reader/writer for the client and a file-reader
-		BufferedReader fromClient = null; 
-		BufferedOutputStream toClient = null;
-		
 		try {
 			// Get connections to and from the client
 			fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -94,7 +95,8 @@ public class Handler implements Runnable {
 					}
 				}
 				else if (command.equalsIgnoreCase(Protocol.CLIENT_CLOSE)) {
-					// TODO close the connection
+					// the user has not connected to the server yet, so basically just close this thread
+					throw new IOException(); // go to the catch 
 				}
 				else {
 					String response = Protocol.SERVER_BAD_SYNTAX + " You are not logged in, and may only send login requests.\r\n";
@@ -203,14 +205,17 @@ public class Handler implements Runnable {
 					toClient.flush();
 				}
 				else if (command.equalsIgnoreCase(Protocol.CLIENT_CLOSE)) {
-					// TODO close to the connection
+					throw new IOException();
 				} // end else if
 			} // end while
 		} //end try
 		catch (IOException ioe) {
-			// TODO: handle this? Is this when the communication is closed for example?
-			// TODO DO we need to have smaller try-catch to attempt to fix smaller issues?
-			// or is an issue like this just too severe to reconcile...
+			if (this.username.equals("")) {
+				// the user isn't logged in, no need to contact the server
+			}
+			else {
+				chatServer.removeUser(username, toClient);
+			}
 		}
 		finally {
 			// Attempt to close all sockets and connections which aren't currently null

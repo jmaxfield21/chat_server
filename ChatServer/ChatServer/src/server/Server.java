@@ -151,6 +151,7 @@ public class Server {
 		// Note two tuples are defined to be equal (in the equals method there)
 		// if they both are the same class and if their x values are equal
 		// in this case the String usernames.
+		// remove the user if their username is currently in users
 		users.remove(new Tuple<String, OutputStream>(username, toClient));
 
 		Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
@@ -186,6 +187,7 @@ public class Server {
 		exec.execute(addMsgThread);
 	}
 	
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		Server chatServer = new Server();		
 	} // end main
