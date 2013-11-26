@@ -48,6 +48,7 @@ public class Handler implements Runnable {
 					continue;
 				}
 
+				// Check if the first line is malformed, return an error if it is
 				if (!(Protocol.isProperFirstLine(request + "\r\n"))) {
 					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed request.\r\n";
 					toClient.write(response.getBytes());
@@ -55,6 +56,7 @@ public class Handler implements Runnable {
 					continue;
 				}
 				
+				// there should be a space here since only login requests are allowed
 				int firstSpace = request.indexOf(" ");
 				if (firstSpace >= 0) {
 					command = request.substring(0, firstSpace);
@@ -68,6 +70,7 @@ public class Handler implements Runnable {
 					continue;
 				}
 
+				// process only login requests
 				if (command.equalsIgnoreCase(Protocol.CLIENT_LOGIN)) {
 					if (Protocol.isValidUsername(requestedName)) {
 						if (chatServer.addUser(requestedName, toClient)) {
@@ -110,6 +113,7 @@ public class Handler implements Runnable {
 					continue;
 				}
 
+				// check if the first line is malformed and return an error if so
 				if (!(Protocol.isProperFirstLine(request + "\r\n"))) {
 					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed request.\r\n";
 					toClient.write(response.getBytes());
@@ -117,6 +121,7 @@ public class Handler implements Runnable {
 					continue;
 				}
 
+				// there may or may not be a space in the first line depending on the particular command
 				int firstSpace = request.indexOf(" ");
 				String command;
 				if (firstSpace >= 0) {
@@ -128,6 +133,7 @@ public class Handler implements Runnable {
 					command = request;
 				}
 
+				// logins are syntax errors here
 				if (command.equalsIgnoreCase(Protocol.CLIENT_LOGIN)) {
 					String response = Protocol.SERVER_BAD_SYNTAX + " You are already logged in, and may not send login requests.\r\n";
 					toClient.write(response.getBytes());
@@ -139,6 +145,7 @@ public class Handler implements Runnable {
 					String nextLine; 
 					int msgLength = 0;
 
+					// Get the whole message since this is a message
 					while(true) {
 						nextLine = fromClient.readLine();
 						if (nextLine == null) {
@@ -155,6 +162,12 @@ public class Handler implements Runnable {
 						}
 					}
 
+					// add in the last line (with the EOT)
+					String lastPart = nextLine.substring(0, nextLine.indexOf(Protocol.EOT) + 1);
+
+					wholeCommand += lastPart; // add the last line with the EOT
+
+
 					if (msgLength >= Protocol.MAX_MESSAGE_LENGTH) 
 					{
 						String response = Protocol.SERVER_BAD_SYNTAX + " Message too long.\r\n";
@@ -163,16 +176,12 @@ public class Handler implements Runnable {
 						continue;
 					}
 
-					if (!(Protocol.isProperCommand(request))) {
+					if (!(Protocol.isProperCommand(wholeCommand))) {
 						String response = Protocol.SERVER_BAD_SYNTAX + " Malformed Request.\r\n";
 						toClient.write(response.getBytes());
 						toClient.flush();
 						continue;
 					}
-
-					String lastPart = nextLine.substring(0, nextLine.indexOf(Protocol.EOT + 1));
-
-					wholeCommand += lastPart; // add the last line with the EOT
 
 					chatServer.addMessage(this.username, wholeCommand);
 				}

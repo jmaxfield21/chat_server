@@ -62,7 +62,7 @@ public class Broadcast implements Runnable {
 
 			if (space > 0) {
 				verb = command.substring(0, space);
-				uname = command.substring(space);
+				uname = command.substring(space + 1); // don't include the space in the user name
 			}
 			else {
 				verb = command;
