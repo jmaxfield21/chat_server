@@ -36,7 +36,7 @@ public class Protocol {
 
 	//End of transmission command
 	public static final String EOT = "\u0004"; 
-	//public static final char EOT_CHAR = '\u0004';
+	public static final char EOT_CHAR = '\u0004';
 
 	public Protocol() {	}
 
@@ -62,6 +62,46 @@ public class Protocol {
 		return valid;
 	}
 
+	/** 
+	Returns true if this is a proper first line (that is if the command is 
+	1.  '/users\r\n'
+	2.  '/close\r\n'
+	3.  '/public\r\n'
+	4.  '/private uName\r\n'
+	5.  '/login uName\r\n')
+
+	*/
+	public static boolean isProperFirstLine(String firstLine) {
+		if (firstLine.equalsIgnoreCase(CLIENT_USER_REQUEST + "\r\n")) {
+			return true;
+		}
+		else if (firstLine.equalsIgnoreCase(CLIENT_CLOSE + "\r\n")) {
+			return true;
+		}
+		else if (firstLine.equalsIgnoreCase(CLIENT_PUBLIC_MSG + "\r\n")) {
+			return true;
+		}
+		else if (firstLine.indexOf(" ") < 1) {
+			return false;
+		}
+		else {
+			String[] words = firstLine.split(" ");
+			if (words[0].equalsIgnoreCase(CLIENT_PRIVATE_MSG) || words[0].equalsIgnoreCase(CLIENT_LOGIN)) {
+				if (words[1] == null) {
+					return false;
+				}
+				if (words[1].contains("\r\n")) {
+					return true;
+				}
+			}
+		}
+				
+		return false;
+	}
+
+	/** 
+	Returns true if the entire command is proper.
+	*/
 	public static boolean isProperCommand(String command) {
 		boolean correct = false;
 		char[] cmd = command.toCharArray();
@@ -74,7 +114,7 @@ public class Protocol {
 					break;
 				}
 				else if(parsedCmd[0].equalsIgnoreCase(CLIENT_PUBLIC_MSG)) {
-					if(parsedCmd[parsedCmd.length].equals(EOT)) {
+					if(cmd[cmd.length-1] == EOT_CHAR) {
 						correct = true;
 						break;
 					}
@@ -98,7 +138,7 @@ public class Protocol {
 					if (parsedCmd[1].charAt(0) == '\r' || parsedCmd[1].charAt(0) == '\n') {
 						return false;
 					}
-					if(parsedCmd[parsedCmd.length].equals(EOT)) {
+					if(cmd[cmd.length-1] == EOT_CHAR) {
 						correct = true;
 						break;
 					}

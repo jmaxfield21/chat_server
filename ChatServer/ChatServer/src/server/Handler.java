@@ -48,7 +48,7 @@ public class Handler implements Runnable {
 					continue;
 				}
 
-				if (!(Protocol.isProperCommand(request))) {
+				if (!(Protocol.isProperFirstLine(request + "\r\n"))) {
 					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed request.\r\n";
 					toClient.write(response.getBytes());
 					toClient.flush();
@@ -62,7 +62,9 @@ public class Handler implements Runnable {
 					requestedName = request.substring(firstSpace + 1, request.length());
 				}
 				else {
-					// TODO send bad syntax
+					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed or illegal request.\r\n";
+					toClient.write(response.getBytes());
+					toClient.flush();
 					continue;
 				}
 
@@ -108,7 +110,7 @@ public class Handler implements Runnable {
 					continue;
 				}
 
-				if (!(Protocol.isProperCommand(request))) {
+				if (!(Protocol.isProperFirstLine(request + "\r\n"))) {
 					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed request.\r\n";
 					toClient.write(response.getBytes());
 					toClient.flush();
@@ -155,39 +157,44 @@ public class Handler implements Runnable {
 
 					if (msgLength >= Protocol.MAX_MESSAGE_LENGTH) 
 					{
-						if (!(Protocol.isProperCommand(request))) {
-							String response = Protocol.SERVER_BAD_SYNTAX + " Message too long.\r\n";
-							toClient.write(response.getBytes());
-							toClient.flush();
-							continue;
-						}
+						String response = Protocol.SERVER_BAD_SYNTAX + " Message too long.\r\n";
+						toClient.write(response.getBytes());
+						toClient.flush();
+						continue;
+					}
+
+					if (!(Protocol.isProperCommand(request))) {
+						String response = Protocol.SERVER_BAD_SYNTAX + " Malformed Request.\r\n";
+						toClient.write(response.getBytes());
+						toClient.flush();
+						continue;
+					}
 
 					String lastPart = nextLine.substring(0, nextLine.indexOf(Protocol.EOT + 1));
 
 					wholeCommand += lastPart; // add the last line with the EOT
 
 					chatServer.addMessage(this.username, wholeCommand);
+				}
+				else if (command.equalsIgnoreCase(Protocol.CLIENT_USER_REQUEST)) {
+					String[] activeUsers = chatServer.getUsers();
+					String response = Protocol.SERVER_ACTIVE_USERS + " ";
+					if (activeUsers.length == 0) {
+						response += "\r\n";
 					}
-					else if (command.equalsIgnoreCase(Protocol.CLIENT_USER_REQUEST)) {
-						String[] activeUsers = chatServer.getUsers();
-						String response = Protocol.SERVER_ACTIVE_USERS + " ";
-						if (activeUsers.length == 0) {
-							response += "\r\n";
+					else {
+						int i;
+						for (i = 0; i < activeUsers.length-1; i++) {
+							response += activeUsers[i] + ",";
 						}
-						else {
-							int i;
-							for (i = 0; i < activeUsers.length-1; i++) {
-								response += activeUsers[i] + ",";
-							}
-							response += activeUsers[i] + "\r\n";
-						}
-	
-						toClient.write(response.getBytes());
-						toClient.flush();
+						response += activeUsers[i] + "\r\n";
 					}
-					else if (command.equalsIgnoreCase(Protocol.CLIENT_CLOSE)) {
-						// TODO close to the connection
-					} // end else if
+
+					toClient.write(response.getBytes());
+					toClient.flush();
+				}
+				else if (command.equalsIgnoreCase(Protocol.CLIENT_CLOSE)) {
+					// TODO close to the connection
 				} // end else if
 			} // end while
 		} //end try
