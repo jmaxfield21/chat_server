@@ -6,6 +6,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.Vector;
+import java.util.concurrent.*;
 
 import protocol.Protocol;
 import chatclient.ChatClient;
@@ -23,65 +25,182 @@ import chatclient.ChatClient;
 
 public class Client {
 	public static final int DEFAULT_PORT = 4020;
-	public String error;
-	public Socket sock;
-	public ChatClient chatClient;
-	public BufferedReader fromServer = null;
-	public BufferedOutputStream toServer = null;
+	private String error;
+	private Socket sock;
+	private ChatClient chatClient;
+	private BufferedReader fromServer = null;
+	private BufferedOutputStream toServer = null;
+	private Vector<String> activeUsers;
+
+	private static final Executor exec = Executors.newCachedThreadPool();
+	private boolean connectedToServer;
+	private boolean userIsLoggedIn;
+	private boolean unameTakenToReport = false; // if we receive a username taken error, set to true to report it, set back to false when done
 	
-	public Client() {	}
+	public Client() {
+		activeUsers = new Vector<String>();
+		connectedToServer = false;
+		userIsLoggedIn = false;
+	}
+
+	/** 
+	I renamed this from run to listen (I think that's what it was intended to do?)
+	Creates a ChatReader object to read in from the server in a separate thread.
+	*/
+	private void listen() {
+		Runnable cr = new ChatReader(this, fromServer);
+		exec.execute(cr);
+	}
 	
-	public void connect(String server) {
+	/** 
+	Attempt to connect to the given server.  Return true upon success, false otherwise.
+	*/
+	public boolean connect(String server) {
 		try {
 			sock = new Socket(server, DEFAULT_PORT);
-						
-			while(true) {
-				
-			}
-			
+			fromServer = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+			toServer = new BufferedOutputStream(new DataOutputStream(sock.getOutputStream()));
+			connectedToServer = true;
+			listen(); // Begin listening to this server
+			return true;			
 		}
 		catch (IOException ioe) {
 			
 		}
+		return false;
 	}
 	
-	private void login() {
-		
+	/** 
+	Attempt to login with the given username. Return true upon a welcome receipt, false if usernameTaken.
+	*/
+	public boolean login(String uname) {
+		String command = Protocol.CLIENT_LOGIN + " " + uname + "\r\n";
+		try {
+			toServer.write(command.getBytes());
+			while (!userIsLoggedIn && !unameTakenToReport) {
+				// we haven't received a response either way from the server yet
+				// TODO: we may want a time out or something here...
+			}
+			if (userIsLoggedIn) {
+				return true;
+			}
+			else if (unameTakenToReport) {
+				unameTakenToReport = false; // we read this one, no more to report right now
+				return false;
+			}
+		}
+		catch (IOException ioe) {
+		}
+		return false;
 	}
-	
-	private void run() {
-//		try {
-//			fromServer = new BufferedReader(new InputStreamReader(client.getInputStream()));
-//			toServer = new BufferedOutputStream(new DataOutputStream(client.getOutputStream()));
-//		}
-//		catch (IOException ioe) {
-//			
-//		}
-		
-	}
-	
+
 	/**
-	 * Boolean helper methods that will help verify
-	 * certain setup steps
-	 * 
-	 * @return
-	 */
-	public boolean isValidServer() {
-		boolean valid = false;
+	Creates and sends a public msg request to the server with the given msgBody.
+	The EOT will be added by this method and should not be given in the msgBody parameter.
+	*/
+	public void sendPublicMsg(String msgBody) {
+		String command = Protocol.CLIENT_PUBLIC_MSG + "\r\n";
+		if (msgBody.indexOf(Protocol.EOT_CHAR) >= 0) {
+			// TODO get rid of those
+		}
+		command += msgBody + Protocol.EOT;
+		try{
+			toServer.write(command.getBytes());
+		}
+		catch (IOException ioe) {
+			// TODO Handle this?
+		}
 		
-		return valid;
+	}
+
+	/**
+	Creates and sends a private msg request to the server with the given msgBody and username.
+	The EOT will be added by this method and should not be given in the msgBody parameter.
+	(Assumes the uname has already been pre-checked)
+	*/
+	public void sendPrivateMsg(String msgBody, String uname) {
+		String command = Protocol.CLIENT_PRIVATE_MSG + " " + uname + "\r\n";
+		if (msgBody.indexOf(Protocol.EOT_CHAR) >= 0) {
+			// TODO get rid of those
+		}
+		command += msgBody + Protocol.EOT;
+		try{
+			toServer.write(command.getBytes());
+		}
+		catch (IOException ioe) {
+			// TODO Handle this?
+		}
+	}
+
+	public void sendUsersRequest() {
+		String command = Protocol.CLIENT_USER_REQUEST + "\r\n";
+		try{
+			toServer.write(command.getBytes());
+		}
+		catch (IOException ioe) {
+			// TODO Handle this?
+		}
+	}
+
+	public void sendCloseRequest() {
+		String command = Protocol.CLIENT_CLOSE + "\r\n";
+		try{
+			toServer.write(command.getBytes());
+		}
+		catch (IOException ioe) {
+			// TODO Handle this?
+		}
 	}
 	
-	public boolean isValidLogin() {
-		boolean valid = false;
-		
-		return valid;
-	}
-	
+	/** 
+	Returns true if the given privUser is present in the vector
+	of active users.
+	*/
 	public boolean isValidPrivateUser(String privUser) {
-		boolean valid = false;
-		
-		return valid;
+		return activeUsers.contains(privUser);
+	}
+
+
+
+	/********
+	Methods that the ChatReader will call after it parses the server's commands.
+	*********/
+
+
+	public void receivedUsernameTaken() {
+		unameTakenToReport = true;
+	}
+
+	public void receivedWelcome() {
+		userIsLoggedIn = true;
+	}
+
+	public void receivedPublicMsg(String msgBody, String senderName) {
+		// TODO send the message to the GUI
+	}
+
+	public void receivedPrivateMsg(String msgBody, String senderName) {
+		// TODO send the message to the GUI
+	}
+
+	public void receivedActiveUsers(Vector<String> users) {
+		activeUsers = users;
+	}
+
+	public void receivedConnected(String uname) {
+		activeUsers.add(uname);
+	}
+
+	public void receivedDisconnected(String uname) {
+		activeUsers.remove(uname);
+	}
+
+	public void receivedBadSyntax(String errorMsg) {
+		// TODO handle bad syntax errors (print them to GUI?)
+	}
+
+	public void receivedError(String errorMsg) {
+		// TODO probably send these to the GUI
 	}
 
 }
