@@ -1,9 +1,7 @@
 package chatclient;
 
-import protocol.Protocol;
 
 import java.io.*;
-import java.util.concurrent.*;
 
 /** 
 ChatReader.java
