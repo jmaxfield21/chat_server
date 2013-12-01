@@ -146,8 +146,9 @@ public class Client {
 		try{
 			toServer.write(command);
 			toServer.flush();
+			Thread.sleep(200);
 		}
-		catch (IOException ioe) {
+		catch (IOException | InterruptedException exc) {
 			// TODO Handle this?
 		}
 	}

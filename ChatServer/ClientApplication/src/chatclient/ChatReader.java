@@ -49,13 +49,15 @@ public class ChatReader implements Runnable {
 					client.receivedWelcome();
 				else if (words[0].equalsIgnoreCase(Protocol.SERVER_USER_TAKEN))
 					client.receivedUsernameTaken();
-				else if (words[0].equalsIgnoreCase(Protocol.SERVER_USER_CONNECTED))
+				else if (words[0].equalsIgnoreCase(Protocol.SERVER_USER_CONNECTED)) {
 					if (words.length > 1)
 						client.receivedConnected(words[1]);
-				else if (words[0].equalsIgnoreCase(Protocol.SERVER_USER_DISCONNECTED))
+				}
+				else if (words[0].equalsIgnoreCase(Protocol.SERVER_USER_DISCONNECTED)) {
 					if (words.length > 1) 
 						client.receivedDisconnected(words[1]);
-				else if (words[0].equalsIgnoreCase(Protocol.SERVER_ACTIVE_USERS))
+				}
+				else if (words[0].equalsIgnoreCase(Protocol.SERVER_ACTIVE_USERS)) {
 					if (words.length > 1) {
 						Vector<String> newUsers = new Vector<String>();
 						String[] users = words[1].split(",");
@@ -64,16 +66,19 @@ public class ChatReader implements Runnable {
 						}
 						client.receivedActiveUsers(newUsers);
 					}
-				else if (words[0].equalsIgnoreCase(Protocol.SERVER_ERROR))
+				}
+				else if (words[0].equalsIgnoreCase(Protocol.SERVER_ERROR)) {
 					if (words.length > 1)
 						client.receivedError(words[1]);
 					else
 						client.receivedError("");
-				else if (words[0].equalsIgnoreCase(Protocol.SERVER_BAD_SYNTAX))
+				}
+				else if (words[0].equalsIgnoreCase(Protocol.SERVER_BAD_SYNTAX)) {
 					if (words.length > 1)
 						client.receivedBadSyntax(words[1]);
 					else
 						client.receivedBadSyntax("");
+				}
 				else if (words[0].equalsIgnoreCase(Protocol.SERVER_PUBLIC_MSG) || words[0].equalsIgnoreCase(Protocol.SERVER_PRIVATE_MSG)) {
 					if (words.length > 1) {
 						String uname = words[1];
