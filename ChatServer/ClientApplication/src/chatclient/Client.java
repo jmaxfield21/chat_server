@@ -213,5 +213,9 @@ public class Client {
 	public void receivedError(String errorMsg) {
 		// TODO probably send these to the GUI
 	}
+	
+	public Vector<String> getUsersList() {
+		return activeUsers;
+	}
 
 }
