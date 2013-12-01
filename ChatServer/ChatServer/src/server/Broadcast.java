@@ -6,29 +6,29 @@ Broadcast.java
 
 This is the broadcast thread which pulls from the message queue in the
 server.  The server will initiate a single instance of this class
-upon its initialization, and will pass a copy of the users:OutputStreams
+upon its initialization, and will pass a copy of the users:BufferedWriters
 vector as well as the queue of messages.
 
 Once it pulls a message from the queue, it parses the contents
 to determine if the message is public or private and get the message
-body.  Then using the vector of users:OutputStreams on the server, it 
+body.  Then using the vector of users:BufferedWriters on the server, it 
 creates the appropriate responses to the recipients and sends the 
-message to their respective outputStreams.
+message to their respective BufferedWriters.
  */
 
 import java.util.concurrent.*;
 import java.util.Vector;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 
 import protocol.Protocol;
 
 @SuppressWarnings("unchecked")
 public class Broadcast implements Runnable {
-	private Vector<Tuple<String, OutputStream>> users;
+	private Vector<Tuple<String, BufferedWriter>> users;
 	private BlockingQueue<Tuple<String, String>> messages;
 
-	public Broadcast(Vector<Tuple<String, OutputStream>> initUsers, BlockingQueue<Tuple<String, String>>
+	public Broadcast(Vector<Tuple<String, BufferedWriter>> initUsers, BlockingQueue<Tuple<String, String>>
 	initMessages) {
 		this.users = initUsers;
 		this.messages = initMessages;
@@ -81,14 +81,14 @@ public class Broadcast implements Runnable {
 				Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
 				users.copyInto(userArray); 
 
-				Tuple<String, OutputStream> entry;
+				Tuple<String, BufferedWriter> entry;
 
 				for (int i = 0; i < userArray.length; i++) {
 					if (userArray[i] != null) {
-						entry = (Tuple<String, OutputStream>) userArray[i];
+						entry = (Tuple<String, BufferedWriter>) userArray[i];
 						try {
-							// entry.y yields an OutputStream that can talk to that client
-							entry.y.write(response.getBytes());
+							// entry.y yields an BufferedWriter that can talk to that client
+							entry.y.write(response);
 							entry.y.flush();
 						} 
 						catch (IOException ioe) { 
@@ -107,16 +107,16 @@ public class Broadcast implements Runnable {
 				Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
 				users.copyInto(userArray); 
 
-				Tuple<String, OutputStream> entry;
+				Tuple<String, BufferedWriter> entry;
 
 				for (int i = 0; i < userArray.length; i++) {
 					if (userArray[i] != null) {
-						entry = (Tuple<String, OutputStream>) userArray[i]; 
-						// entry.x is the user name string and entry.y is the outputStream
+						entry = (Tuple<String, BufferedWriter>) userArray[i]; 
+						// entry.x is the user name string and entry.y is the BufferedWriter
 						// note the username Is case sensitive
 						if (entry.x.equals(uname)) {
 							try { 
-								entry.y.write(response.getBytes());
+								entry.y.write(response);
 								entry.y.flush();
 							}
 							catch (IOException ioe) { 
