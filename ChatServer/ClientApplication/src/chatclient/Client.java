@@ -78,6 +78,19 @@ public class Client {
 		try {
 			toServer.write(command.getBytes());
 			while (!userIsLoggedIn && !unameTakenToReport) {
+				String successResponse = Protocol.SERVER_WELCOME + "\r\n";
+				String failResponse = Protocol.SERVER_USER_TAKEN + "\r\n";
+				
+				String response = fromServer.readLine();
+				
+				if (response.equals(successResponse)) {
+					userIsLoggedIn = true;
+					unameTakenToReport = true;
+				}
+				else if (response.equals(failResponse)) {
+					userIsLoggedIn = false;
+					unameTakenToReport = false;
+				}
 				// we haven't received a response either way from the server yet
 				// TODO: we may want a time out or something here...
 			}
