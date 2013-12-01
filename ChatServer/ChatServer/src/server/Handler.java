@@ -17,7 +17,7 @@ public class Handler implements Runnable {
 	private String username; // This client's user's username
 	private Server chatServer; // to call the Server's various methods
 	private BufferedReader fromClient;
-	private BufferedOutputStream toClient;
+	private BufferedWriter toClient;
 
 	public Handler(Socket clientSocket, Server theChatServer) {
 		this.client = clientSocket;
@@ -34,7 +34,7 @@ public class Handler implements Runnable {
 		try {
 			// Get connections to and from the client
 			fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
-			toClient = new BufferedOutputStream(new DataOutputStream(client.getOutputStream()));
+			toClient = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
 			
 			// Client has not yet logged in.  In this state, we only allow /Login
 			// Break when the user is logged in and ready to do other commands
@@ -52,7 +52,7 @@ public class Handler implements Runnable {
 				// Check if the first line is malformed, return an error if it is
 				if (!(Protocol.isProperFirstLine(request + "\r\n"))) {
 					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed request.\r\n";
-					toClient.write(response.getBytes());
+					toClient.write(response);
 					toClient.flush();
 					continue;
 				}
@@ -66,7 +66,7 @@ public class Handler implements Runnable {
 				}
 				else {
 					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed or illegal request.\r\n";
-					toClient.write(response.getBytes());
+					toClient.write(response);
 					toClient.flush();
 					continue;
 				}
@@ -77,20 +77,20 @@ public class Handler implements Runnable {
 						if (chatServer.addUser(requestedName, toClient)) {
 							// user is now logged in
 							String response = Protocol.SERVER_WELCOME + "\r\n";
-							toClient.write(response.getBytes());
+							toClient.write(response);
 							toClient.flush();
 							this.username = requestedName; // this is their real username now
 							break; // go on to the logged-in loop
 						}
 						else {
 							String response = Protocol.SERVER_USER_TAKEN + "\r\n";
-							toClient.write(response.getBytes());
+							toClient.write(response);
 							toClient.flush();
 						}
 					}
 					else {
 						String response = Protocol.SERVER_BAD_SYNTAX + " Illegal username.\r\n";
-						toClient.write(response.getBytes());
+						toClient.write(response);
 						toClient.flush();
 					}
 				}
@@ -100,7 +100,7 @@ public class Handler implements Runnable {
 				}
 				else {
 					String response = Protocol.SERVER_BAD_SYNTAX + " You are not logged in, and may only send login requests.\r\n";
-					toClient.write(response.getBytes());
+					toClient.write(response);
 					toClient.flush();
 				}
 			} // end while
@@ -118,7 +118,7 @@ public class Handler implements Runnable {
 				// check if the first line is malformed and return an error if so
 				if (!(Protocol.isProperFirstLine(request + "\r\n"))) {
 					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed request.\r\n";
-					toClient.write(response.getBytes());
+					toClient.write(response);
 					toClient.flush();
 					continue;
 				}
@@ -138,7 +138,7 @@ public class Handler implements Runnable {
 				// logins are syntax errors here
 				if (command.equalsIgnoreCase(Protocol.CLIENT_LOGIN)) {
 					String response = Protocol.SERVER_BAD_SYNTAX + " You are already logged in, and may not send login requests.\r\n";
-					toClient.write(response.getBytes());
+					toClient.write(response);
 					toClient.flush();
 				}
 				else if (command.equalsIgnoreCase(Protocol.CLIENT_PUBLIC_MSG) || command.equalsIgnoreCase(Protocol.CLIENT_PRIVATE_MSG)) {
@@ -173,14 +173,14 @@ public class Handler implements Runnable {
 					if (msgLength >= Protocol.MAX_MESSAGE_LENGTH) 
 					{
 						String response = Protocol.SERVER_BAD_SYNTAX + " Message too long.\r\n";
-						toClient.write(response.getBytes());
+						toClient.write(response);
 						toClient.flush();
 						continue;
 					}
 
 					if (!(Protocol.isProperCommand(wholeCommand))) {
 						String response = Protocol.SERVER_BAD_SYNTAX + " Malformed Request.\r\n";
-						toClient.write(response.getBytes());
+						toClient.write(response);
 						toClient.flush();
 						continue;
 					}
@@ -201,7 +201,7 @@ public class Handler implements Runnable {
 						response += activeUsers[i] + "\r\n";
 					}
 
-					toClient.write(response.getBytes());
+					toClient.write(response);
 					toClient.flush();
 				}
 				else if (command.equalsIgnoreCase(Protocol.CLIENT_CLOSE)) {

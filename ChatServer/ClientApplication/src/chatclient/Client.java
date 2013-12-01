@@ -1,10 +1,10 @@
 package chatclient;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.Vector;
 import java.util.concurrent.*;
@@ -29,7 +29,7 @@ public class Client {
 	private Socket sock;
 	private ChatClient chatClient;
 	private BufferedReader fromServer = null;
-	private BufferedOutputStream toServer = null;
+	private BufferedWriter toServer = null;
 	private Vector<String> activeUsers;
 
 	private static final Executor exec = Executors.newCachedThreadPool();
@@ -59,7 +59,7 @@ public class Client {
 		try {
 			sock = new Socket(server, DEFAULT_PORT);
 			fromServer = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-			toServer = new BufferedOutputStream(new DataOutputStream(sock.getOutputStream()));
+			toServer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 			connectedToServer = true;
 			listen(); // Begin listening to this server
 			return true;			
@@ -76,7 +76,7 @@ public class Client {
 	public boolean login(String uname) {
 		String command = Protocol.CLIENT_LOGIN + " " + uname + "\r\n";
 		try {
-			toServer.write(command.getBytes());
+			toServer.write(command);
 			while (!userIsLoggedIn && !unameTakenToReport) {
 				String successResponse = Protocol.SERVER_WELCOME + "\r\n";
 				String failResponse = Protocol.SERVER_USER_TAKEN + "\r\n";
@@ -118,7 +118,7 @@ public class Client {
 		}
 		command += msgBody + Protocol.EOT;
 		try{
-			toServer.write(command.getBytes());
+			toServer.write(command);
 		}
 		catch (IOException ioe) {
 			// TODO Handle this?
@@ -138,7 +138,7 @@ public class Client {
 		}
 		command += msgBody + Protocol.EOT;
 		try{
-			toServer.write(command.getBytes());
+			toServer.write(command);
 		}
 		catch (IOException ioe) {
 			// TODO Handle this?
@@ -148,7 +148,7 @@ public class Client {
 	public void sendUsersRequest() {
 		String command = Protocol.CLIENT_USER_REQUEST + "\r\n";
 		try{
-			toServer.write(command.getBytes());
+			toServer.write(command);
 		}
 		catch (IOException ioe) {
 			// TODO Handle this?
@@ -158,7 +158,7 @@ public class Client {
 	public void sendCloseRequest() {
 		String command = Protocol.CLIENT_CLOSE + "\r\n";
 		try{
-			toServer.write(command.getBytes());
+			toServer.write(command);
 		}
 		catch (IOException ioe) {
 			// TODO Handle this?

@@ -24,7 +24,7 @@ public class Server {
 	public static final int DEFAULT_PORT = 4020; 
 	private static final Executor exec = Executors.newCachedThreadPool();
 
-	private static Vector<Tuple<String, OutputStream>> users; // Tuple<user's name:their output stream>
+	private static Vector<Tuple<String, BufferedWriter>> users; // Tuple<user's name:their buffered writer>
 	private static BlockingQueue<Tuple<String, String>> messages; // Tuple<sender's user name:message>
 
 	public Server() {
@@ -33,7 +33,7 @@ public class Server {
 	} // end constructor
 
 	private void initialize() {
-		users = new Vector<Tuple<String, OutputStream>>();
+		users = new Vector<Tuple<String, BufferedWriter>>();
 		//The LinkedBlockingQueue is all-purpose and does not have a mandatory capacity
 		messages = new LinkedBlockingQueue<Tuple<String, String>>();
 
@@ -82,7 +82,7 @@ public class Server {
 	public String[] getUsers() {
 		Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
 		users.copyInto(userArray);
-		Tuple<String, OutputStream> entry;
+		Tuple<String, BufferedWriter> entry;
 
 		String[] activeUsers = new String[userArray.length];
 
@@ -90,7 +90,7 @@ public class Server {
 
 		for (int i = 0; i < activeUsers.length; i++) {
 			if (userArray[i] != null) {
-				entry = (Tuple<String, OutputStream>) userArray[i];
+				entry = (Tuple<String, BufferedWriter>) userArray[i];
 				activeUsers[i] = entry.x;
 				count++;
 			}
@@ -107,20 +107,20 @@ public class Server {
 
 	/** 
 	Client threads should call this method to add the user to the vector.
-	The parameters are the user's name and an OutputStream to reach them.
+	The parameters are the user's name and an BufferedWriter to reach them.
 	Returns true if the user was added, and false if the user could not be
 	added as the username was taken.
 	*/
-	public boolean addUser(String username, OutputStream toClient) {
-		if (users.contains(new Tuple<String, OutputStream>(username, toClient))) {
+	public boolean addUser(String username, BufferedWriter toClient) {
+		if (users.contains(new Tuple<String, BufferedWriter>(username, toClient))) {
 			return false;
 		}
 
-		users.add(new Tuple<String, OutputStream>(username, toClient));
+		users.add(new Tuple<String, BufferedWriter>(username, toClient));
 
 		Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
 		users.copyInto(userArray);
-		Tuple<String, OutputStream> entry;
+		Tuple<String, BufferedWriter> entry;
 
 		String response = Protocol.SERVER_USER_CONNECTED + " ";
 		response += username;
@@ -128,10 +128,10 @@ public class Server {
 
 		for (int i = 0; i < userArray.length; i++) {
 			if (userArray[i] != null) {
-				entry = (Tuple<String, OutputStream>) userArray[i];
+				entry = (Tuple<String, BufferedWriter>) userArray[i];
 				try {
-					// entry.y yields an OutputStream that can talk to that client
-					entry.y.write(response.getBytes());
+					// entry.y yields an BufferedWriter that can talk to that client
+					entry.y.write(response);
 					entry.y.flush();
 				} 
 				catch (IOException ioe) { 
@@ -147,16 +147,16 @@ public class Server {
 	Client threads should call this method to remove their user from the 
 	vector.  The parameters should be the same as when the user was added.
 	*/
-	public void removeUser(String username, OutputStream toClient) {
+	public void removeUser(String username, BufferedWriter toClient) {
 		// Note two tuples are defined to be equal (in the equals method there)
 		// if they both are the same class and if their x values are equal
 		// in this case the String usernames.
 		// remove the user if their username is currently in users
-		users.remove(new Tuple<String, OutputStream>(username, toClient));
+		users.remove(new Tuple<String, BufferedWriter>(username, toClient));
 
 		Object[] userArray = new Object[users.size()*2 + 5]; // just to be safe
 		users.copyInto(userArray);
-		Tuple<String, OutputStream> entry;
+		Tuple<String, BufferedWriter> entry;
 
 		String response = Protocol.SERVER_USER_DISCONNECTED + " ";
 		response += username;
@@ -164,10 +164,10 @@ public class Server {
 
 		for (int i = 0; i < userArray.length; i++) {
 			if (userArray[i] != null) {
-				entry = (Tuple<String, OutputStream>) userArray[i];
+				entry = (Tuple<String, BufferedWriter>) userArray[i];
 				try {
-					// entry.y yields an OutputStream that can talk to that client
-					entry.y.write(response.getBytes());
+					// entry.y yields an BufferedWriter that can talk to that client
+					entry.y.write(response);
 					entry.y.flush();
 				} 
 				catch (IOException ioe) { 
