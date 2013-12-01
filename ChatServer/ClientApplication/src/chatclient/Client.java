@@ -74,12 +74,19 @@ public class Client {
 	Attempt to login with the given username. Return true upon a welcome receipt, false if usernameTaken.
 	*/
 	public boolean login(String uname) {
+		unameTakenToReport = false;
 		String command = Protocol.CLIENT_LOGIN + " " + uname + "\r\n";
 		try {
 			toServer.write(command);
+			toServer.flush();
 			while (!userIsLoggedIn && !unameTakenToReport) {
+				try {
+					Thread.sleep(100); // try again in 100 milliseconds
+				}
+				catch (InterruptedException ie){
+					continue;
+				}				
 				// we haven't received a response either way from the server yet
-				// TODO: we may want a time out or something here...
 			}
 			if (userIsLoggedIn) {
 				return true;
@@ -106,6 +113,7 @@ public class Client {
 		command += msgBody + Protocol.EOT;
 		try{
 			toServer.write(command);
+			toServer.flush();
 		}
 		catch (IOException ioe) {
 			// TODO Handle this?
@@ -126,6 +134,7 @@ public class Client {
 		command += msgBody + Protocol.EOT;
 		try{
 			toServer.write(command);
+			toServer.flush();
 		}
 		catch (IOException ioe) {
 			// TODO Handle this?
@@ -136,6 +145,7 @@ public class Client {
 		String command = Protocol.CLIENT_USER_REQUEST + "\r\n";
 		try{
 			toServer.write(command);
+			toServer.flush();
 		}
 		catch (IOException ioe) {
 			// TODO Handle this?
@@ -146,6 +156,7 @@ public class Client {
 		String command = Protocol.CLIENT_CLOSE + "\r\n";
 		try{
 			toServer.write(command);
+			toServer.flush();
 		}
 		catch (IOException ioe) {
 			// TODO Handle this?
