@@ -109,9 +109,7 @@ public class Client {
 	*/
 	public void sendPublicMsg(String msgBody) {
 		String command = Protocol.CLIENT_PUBLIC_MSG + "\r\n";
-		if (msgBody.indexOf(Protocol.EOT_CHAR) >= 0) {
-			// TODO get rid of those
-		}
+		
 		command += msgBody + Protocol.EOT;
 		try{
 			toServer.write(command);
@@ -130,9 +128,7 @@ public class Client {
 	*/
 	public void sendPrivateMsg(String msgBody, String uname) {
 		String command = Protocol.CLIENT_PRIVATE_MSG + " " + uname + "\r\n";
-		if (msgBody.indexOf(Protocol.EOT_CHAR) >= 0) {
-			// TODO get rid of those
-		}
+		
 		command += msgBody + Protocol.EOT;
 		try{
 			toServer.write(command);
