@@ -23,6 +23,7 @@ import chatclient.ChatClient;
  *
  */
 
+@SuppressWarnings("unused")
 public class Client {
 	public static final int DEFAULT_PORT = 4020;
 	private String error;
@@ -193,12 +194,20 @@ public class Client {
 		return publicMsg;
 	}
 	
+	public void resetPublicMsg() {
+		publicMsg = null;
+	}
+	
 	public void receivedPrivateMsg(String msgBody, String senderName) {
 		privateMsg = senderName + ": " + msgBody;
 	}
 		
 	public String getPrivateMsg() {
 		return privateMsg;
+	}
+	
+	public void resetPrivateMsg() {
+		privateMsg = null;
 	}
 
 	public void receivedActiveUsers(Vector<String> users) {
