@@ -26,6 +26,8 @@ import chatclient.ChatClient;
 public class Client {
 	public static final int DEFAULT_PORT = 4020;
 	private String error;
+	private String publicMsg;
+	private String privateMsg;
 	private Socket sock;
 	private ChatClient chatClient;
 	private BufferedReader fromServer = null;
@@ -188,11 +190,19 @@ public class Client {
 	}
 
 	public void receivedPublicMsg(String msgBody, String senderName) {
-		// TODO send the message to the GUI
+		publicMsg = senderName + ": " + msgBody;
 	}
 
+	public String getPublicMsg() {
+		return publicMsg;
+	}
+	
 	public void receivedPrivateMsg(String msgBody, String senderName) {
-		// TODO send the message to the GUI
+		privateMsg = senderName + ": " + msgBody;
+	}
+		
+	public String getPrivateMsg() {
+		return privateMsg;
 	}
 
 	public void receivedActiveUsers(Vector<String> users) {
@@ -218,5 +228,5 @@ public class Client {
 	public Vector<String> getUsersList() {
 		return activeUsers;
 	}
-
+	
 }
