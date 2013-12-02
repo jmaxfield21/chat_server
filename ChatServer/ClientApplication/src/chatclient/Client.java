@@ -1,10 +1,10 @@
 package chatclient;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Vector;
 import java.util.concurrent.*;
@@ -32,7 +32,7 @@ public class Client {
 	private Socket sock;
 	private ChatClient chatClient;
 	private BufferedReader fromServer = null;
-	private BufferedWriter toServer = null;
+	private PrintWriter toServer = null;
 	private Vector<String> activeUsers;
 
 	private static final Executor exec = Executors.newCachedThreadPool();
@@ -62,7 +62,7 @@ public class Client {
 		try {
 			sock = new Socket(server, DEFAULT_PORT);
 			fromServer = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-			toServer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
+			toServer = new PrintWriter(new OutputStreamWriter(sock.getOutputStream()), true); // auto-flush enabled
 			connectedToServer = true;
 			listen(); // Begin listening to this server
 			return true;			
@@ -79,27 +79,22 @@ public class Client {
 	public boolean login(String uname) {
 		unameTakenToReport = false;
 		String command = Protocol.CLIENT_LOGIN + " " + uname + "\r\n";
-		try {
-			toServer.write(command);
-			toServer.flush();
-			while (!userIsLoggedIn && !unameTakenToReport) {
-				try {
-					Thread.sleep(100); // try again in 100 milliseconds
-				}
-				catch (InterruptedException ie){
-					continue;
-				}				
-				// we haven't received a response either way from the server yet
+		toServer.println(command);
+		while (!userIsLoggedIn && !unameTakenToReport) {
+			try {
+				Thread.sleep(100); // try again in 100 milliseconds
 			}
-			if (userIsLoggedIn) {
-				return true;
-			}
-			else if (unameTakenToReport) {
-				unameTakenToReport = false; // we read this one, no more to report right now
-				return false;
-			}
+			catch (InterruptedException ie){
+				continue;
+			}				
+			// we haven't received a response either way from the server yet
 		}
-		catch (IOException ioe) {
+		if (userIsLoggedIn) {
+			return true;
+		}
+		else if (unameTakenToReport) {
+			unameTakenToReport = false; // we read this one, no more to report right now
+			return false;
 		}
 		return false;
 	}
@@ -112,13 +107,7 @@ public class Client {
 		String command = Protocol.CLIENT_PUBLIC_MSG + "\r\n";
 		
 		command += msgBody + Protocol.EOT;
-		try{
-			toServer.write(command);
-			toServer.flush();
-		}
-		catch (IOException ioe) {
-			// TODO Handle this?
-		}
+		toServer.println(command);
 		
 	}
 
@@ -131,36 +120,17 @@ public class Client {
 		String command = Protocol.CLIENT_PRIVATE_MSG + " " + uname + "\r\n";
 		
 		command += msgBody + Protocol.EOT;
-		try{
-			toServer.write(command);
-			toServer.flush();
-		}
-		catch (IOException ioe) {
-			// TODO Handle this?
-		}
+		toServer.println(command);
 	}
 
 	public void sendUsersRequest() {
 		String command = Protocol.CLIENT_USER_REQUEST + "\r\n";
-		try{
-			toServer.write(command);
-			toServer.flush();
-			Thread.sleep(200);
-		}
-		catch (IOException | InterruptedException exc) {
-			// TODO Handle this?
-		}
+		toServer.println(command);
 	}
 
 	public void sendCloseRequest() {
 		String command = Protocol.CLIENT_CLOSE + "\r\n";
-		try{
-			toServer.write(command);
-			toServer.flush();
-		}
-		catch (IOException ioe) {
-			// TODO Handle this?
-		}
+		toServer.println(command);
 	}
 	
 	/** 
