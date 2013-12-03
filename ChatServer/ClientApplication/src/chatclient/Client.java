@@ -38,7 +38,6 @@ public class Client {
 	private boolean connectedToServer;
 	private boolean userIsLoggedIn;
 	private boolean unameTakenToReport = false; // if we receive a username taken error, set to true to report it, set back to false when done
-	private boolean receivedBadSyntax = false;
 	
 	public Client() {
 		activeUsers = new Vector<String>();
@@ -83,10 +82,13 @@ public class Client {
 		if (uname.equals("") || uname.equals(null)) {
 			return false;
 		}
+		if (!Protocol.isValidUsername(uname)) {
+			return false;
+		}
 		unameTakenToReport = false;
 		String command = Protocol.CLIENT_LOGIN + " " + uname + "\r\n";
 		toServer.println(command);
-		while (!userIsLoggedIn && !unameTakenToReport && !receivedBadSyntax) {
+		while (!userIsLoggedIn && !unameTakenToReport) {
 			try {
 				Thread.sleep(100); // try again in 100 milliseconds
 			}
@@ -100,10 +102,6 @@ public class Client {
 		}
 		else if (unameTakenToReport) {
 			unameTakenToReport = false; // we read this one, no more to report right now
-			return false;
-		}
-		else if (receivedBadSyntax) {
-			receivedBadSyntax = false;
 			return false;
 		}
 		return false;
@@ -204,7 +202,6 @@ public class Client {
 
 	public void receivedBadSyntax(String errorMsg) {
 		error = errorMsg;
-		receivedBadSyntax = true;
 	}
 
 	public void receivedError(String errorMsg) {
