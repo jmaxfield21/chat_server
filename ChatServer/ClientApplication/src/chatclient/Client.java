@@ -30,7 +30,6 @@ public class Client {
 	private String publicMsg;
 	private String privateMsg;
 	private Socket sock;
-	private ChatClient chatClient;
 	private BufferedReader fromServer = null;
 	private PrintWriter toServer = null;
 	private Vector<String> activeUsers;
@@ -39,6 +38,7 @@ public class Client {
 	private boolean connectedToServer;
 	private boolean userIsLoggedIn;
 	private boolean unameTakenToReport = false; // if we receive a username taken error, set to true to report it, set back to false when done
+	private boolean receivedBadSyntax = false;
 	
 	public Client() {
 		activeUsers = new Vector<String>();
@@ -59,6 +59,9 @@ public class Client {
 	Attempt to connect to the given server.  Return true upon success, false otherwise.
 	*/
 	public boolean connect(String server) {
+		if (server.equals("") || server.equals(null)) {
+			return false;
+		}
 		try {
 			sock = new Socket(server, DEFAULT_PORT);
 			fromServer = new BufferedReader(new InputStreamReader(sock.getInputStream()));
@@ -77,10 +80,13 @@ public class Client {
 	Attempt to login with the given username. Return true upon a welcome receipt, false if usernameTaken.
 	*/
 	public boolean login(String uname) {
+		if (uname.equals("") || uname.equals(null)) {
+			return false;
+		}
 		unameTakenToReport = false;
 		String command = Protocol.CLIENT_LOGIN + " " + uname + "\r\n";
 		toServer.println(command);
-		while (!userIsLoggedIn && !unameTakenToReport) {
+		while (!userIsLoggedIn && !unameTakenToReport && !receivedBadSyntax) {
 			try {
 				Thread.sleep(100); // try again in 100 milliseconds
 			}
@@ -94,6 +100,10 @@ public class Client {
 		}
 		else if (unameTakenToReport) {
 			unameTakenToReport = false; // we read this one, no more to report right now
+			return false;
+		}
+		else if (receivedBadSyntax) {
+			receivedBadSyntax = false;
 			return false;
 		}
 		return false;
@@ -193,11 +203,12 @@ public class Client {
 	}
 
 	public void receivedBadSyntax(String errorMsg) {
-		// TODO handle bad syntax errors (print them to GUI?)
+		error = errorMsg;
+		receivedBadSyntax = true;
 	}
 
 	public void receivedError(String errorMsg) {
-		// TODO probably send these to the GUI
+		error = errorMsg;
 	}
 	
 	public Vector<String> getUsersList() {

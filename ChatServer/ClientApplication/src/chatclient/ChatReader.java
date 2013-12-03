@@ -87,7 +87,6 @@ public class ChatReader implements Runnable {
 						while ((serv = (char)fromServer.read()) != Protocol.EOT_CHAR) {
 							msgBody += serv;
 						}
-						// TODO implement some kind of timeout feature?
 						if (words[0].equalsIgnoreCase(Protocol.SERVER_PUBLIC_MSG))
 							client.receivedPublicMsg(msgBody, uname);
 						else
