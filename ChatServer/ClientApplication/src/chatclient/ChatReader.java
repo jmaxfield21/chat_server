@@ -36,6 +36,9 @@ public class ChatReader implements Runnable {
 		while (true) {
 			try {
 				command = fromServer.readLine(); // the first line of the server's command
+				if (command == null) {
+					continue;
+				}
 				int newLine = command.indexOf("\r\n"); // get the index of the /r/n to cut it off
 				if (newLine > -1)
 					truncated = command.substring(0, newLine);
