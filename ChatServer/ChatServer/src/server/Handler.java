@@ -35,7 +35,7 @@ public class Handler implements Runnable {
 			// Get connections to and from the client
 			fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			toClient = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
-			
+
 			// Client has not yet logged in.  In this state, we only allow /Login
 			// Break when the user is logged in and ready to do other commands
 			// all commands besides /Login are bad syntax here
@@ -56,7 +56,7 @@ public class Handler implements Runnable {
 					toClient.flush();
 					continue;
 				}
-				
+
 				// there should be a space here since only login requests are allowed
 				int firstSpace = request.indexOf(" ");
 				if (firstSpace >= 0) {
@@ -144,30 +144,18 @@ public class Handler implements Runnable {
 				else if (command.equalsIgnoreCase(Protocol.CLIENT_PUBLIC_MSG) || command.equalsIgnoreCase(Protocol.CLIENT_PRIVATE_MSG)) {
 					String wholeCommand = request + "\r\n";
 
-					String nextLine; 
+					String msgBody = ""; 
 					int msgLength = 0;
 
 					// Get the whole message since this is a message
-					while(true) {
-						nextLine = fromClient.readLine();
-						if (nextLine == null) {
-							continue;
-						}
-						else {
-							if ((!(nextLine.contains(Protocol.EOT))) && (msgLength < Protocol.MAX_MESSAGE_LENGTH)) {
-								wholeCommand += nextLine + "\r\n";
-								msgLength += nextLine.length();
-							}
-							else {
-								break;
-							}
-						}
+					char serv;
+					while ((serv = (char)fromClient.read()) != Protocol.EOT_CHAR && (msgLength < Protocol.MAX_MESSAGE_LENGTH)) {
+						msgBody += serv;
+						msgLength++;
 					}
-
-					// add in the last line (with the EOT)
-					String lastPart = nextLine.substring(0, nextLine.indexOf(Protocol.EOT) + 1);
-
-					wholeCommand += lastPart; // add the last line with the EOT
+										
+					wholeCommand += msgBody;
+					wholeCommand += Protocol.EOT; // add the last line with the EOT
 
 
 					if (msgLength >= Protocol.MAX_MESSAGE_LENGTH) 
