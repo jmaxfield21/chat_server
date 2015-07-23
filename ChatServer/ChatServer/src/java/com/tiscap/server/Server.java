@@ -1,4 +1,4 @@
-package server;
+package com.tiscap.server;
 
 /**
 Server.java
@@ -16,7 +16,7 @@ import java.io.*;
 import java.util.concurrent.*;
 import java.util.Vector;
 
-import protocol.Protocol;
+import com.tiscap.protocol.Protocol;
 
 
 @SuppressWarnings("unchecked")

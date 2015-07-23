@@ -1,8 +1,8 @@
-package chatclient;
+package com.tiscap.chatclient;
 
 
 import java.io.*;
-import protocol.Protocol;
+import com.tiscap.protocol.Protocol;
 import java.util.Vector;
 
 /** 

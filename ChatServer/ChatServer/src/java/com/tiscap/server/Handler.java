@@ -1,4 +1,4 @@
-package server;
+package com.tiscap.server;
 
 /** 
 Handler.java
@@ -9,7 +9,7 @@ This class handles each client connection.
 
 import java.io.*;
 import java.net.*;
-import protocol.Protocol;
+import com.tiscap.protocol.Protocol;
 
 
 public class Handler implements Runnable {
@@ -50,7 +50,7 @@ public class Handler implements Runnable {
 				}
 
 				// Check if the first line is malformed, return an error if it is
-				if (!(Protocol.isProperFirstLine(request + "\r\n"))) {
+				if (!( Protocol.isProperFirstLine( request + "\r\n" ))) {
 					String response = Protocol.SERVER_BAD_SYNTAX + " Malformed request.\r\n";
 					toClient.write(response);
 					toClient.flush();

@@ -1,4 +1,4 @@
-package server;
+package com.tiscap.server;
 
 /**
 Broadcast.java
@@ -21,7 +21,7 @@ import java.util.Vector;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
-import protocol.Protocol;
+import com.tiscap.protocol.Protocol;
 
 @SuppressWarnings("unchecked")
 public class Broadcast implements Runnable {
@@ -68,7 +68,7 @@ public class Broadcast implements Runnable {
 				verb = command;
 			}
 
-			if (!(verb.equalsIgnoreCase(Protocol.CLIENT_PUBLIC_MSG) || verb.equalsIgnoreCase(Protocol.CLIENT_PRIVATE_MSG))) {
+			if (!(verb.equalsIgnoreCase( Protocol.CLIENT_PUBLIC_MSG) || verb.equalsIgnoreCase(Protocol.CLIENT_PRIVATE_MSG))) {
 				// This is a bad request...
 			}
 			else if (verb.equalsIgnoreCase(Protocol.CLIENT_PUBLIC_MSG)) {

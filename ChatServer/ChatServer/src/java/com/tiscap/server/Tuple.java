@@ -1,4 +1,4 @@
-package server;
+package com.tiscap.server;
 
 /**
 Tuple.java
@@ -8,7 +8,7 @@ A simple data structure for immutable storage of two linked objects.
 For the purposes of this project, two tuples are considered equal 
 if they contain the same first element x (in this context that is 
 generally the username string). Note also that the username String
-is case-sensitive in the protocol, so the checking will be appropriate.
+is case-sensitive in the com.protocol, so the checking will be appropriate.
 */
 
 @SuppressWarnings("unchecked")

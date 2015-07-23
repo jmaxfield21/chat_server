@@ -1,4 +1,4 @@
-package chatclient;
+package com.tiscap.chatclient;
 
 public class UsersUpdateThread implements Runnable {
 	ChatClient theGui;
