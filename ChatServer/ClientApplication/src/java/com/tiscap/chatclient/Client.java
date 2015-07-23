@@ -1,4 +1,4 @@
-package chatclient;
+package com.tiscap.chatclient;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,8 +9,7 @@ import java.net.Socket;
 import java.util.Vector;
 import java.util.concurrent.*;
 
-import protocol.Protocol;
-import chatclient.ChatClient;
+import com.tiscap.protocol.Protocol;
 
 /**
  * Client.java
